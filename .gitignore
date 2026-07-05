@@ -1,0 +1,31 @@
+# Dependencies
+/node_modules
+life-beyond-work/node_modules/
+life-beyond-work/frontend/node_modules/
+frontend/node_modules/
+
+# Compiled Sanity Studio
+/dist
+
+# Temporary Sanity runtime
+/.sanity
+
+# Logs
+/logs
+*.log
+
+# Coverage
+/coverage
+
+# Misc
+.DS_Store
+*.pem
+
+# Typescript
+*.tsbuildinfo
+
+# Dotenv and local files
+*.local
+.env.local
+life-beyond-work/.env
+frontend/.env.local

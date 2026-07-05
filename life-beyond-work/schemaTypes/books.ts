@@ -1,0 +1,118 @@
+import { defineType, defineField } from 'sanity'
+
+export default defineType({
+  name: 'book',
+  title: 'Books',
+  type: 'document',
+  icon: () => '📚',
+  groups: [
+    { name: 'content', title: 'Content', default: true },
+    { name: 'seo', title: 'SEO' },
+  ],
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Book Title',
+      type: 'string',
+      group: 'content',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      group: 'content',
+      options: {
+        source: 'title',
+        maxLength: 96,
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'authorName',
+      title: 'Book Author',
+      type: 'string',
+      group: 'content',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'coverImage',
+      title: 'Book Cover',
+      type: 'image',
+      group: 'content',
+      options: {
+        hotspot: true,
+      },
+    }),
+    defineField({
+      name: 'rating',
+      title: 'Rating',
+      type: 'number',
+      group: 'content',
+      description: 'Rating out of 5 (e.g., 4.5)',
+      validation: (rule) => rule.min(0).max(5),
+    }),
+    defineField({
+      name: 'recommendation',
+      title: 'Recommendation',
+      type: 'text',
+      group: 'content',
+      description: 'Why do you recommend this book?',
+      rows: 4,
+    }),
+    defineField({
+      name: 'notes',
+      title: 'Personal Notes',
+      type: 'array',
+      group: 'content',
+      of: [{ type: 'block' }],
+      description: 'Your personal reflections, key takeaways, or favorite passages',
+    }),
+    defineField({
+      name: 'purchaseLink',
+      title: 'Purchase Link',
+      type: 'url',
+      group: 'content',
+      description: 'Amazon, Bookshop.org, or other retailer URL',
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      group: 'content',
+      of: [{ type: 'string' }],
+      options: {
+        layout: 'tags',
+      },
+      description: 'e.g., Fiction, Self-Development, Science, etc.',
+    }),
+    defineField({
+      name: 'publishedAt',
+      title: 'Publish Date',
+      type: 'datetime',
+      group: 'content',
+    }),
+    defineField({
+      name: 'seoTitle',
+      title: 'SEO Title',
+      type: 'string',
+      group: 'seo',
+      description: 'Overrides the book title for search engines',
+    }),
+    defineField({
+      name: 'seoDescription',
+      title: 'SEO Description',
+      type: 'text',
+      group: 'seo',
+      description: 'Description for search engines (recommended: 150-160 characters)',
+      rows: 3,
+    }),
+    defineField({
+      name: 'ogImage',
+      title: 'Open Graph Image',
+      type: 'image',
+      group: 'seo',
+      description: 'Image shown when shared on social media',
+    }),
+  ],
+})
