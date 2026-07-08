@@ -1,0 +1,14 @@
+{
+  "builds": [
+    {
+      "src": "life-beyond-work/frontend/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "life-beyond-work/frontend/$1"
+    }
+  ]
+}
