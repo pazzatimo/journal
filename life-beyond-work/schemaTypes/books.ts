@@ -52,13 +52,14 @@ export default defineType({
       description: 'Rating out of 5 (e.g., 4.5)',
       validation: (rule) => rule.min(0).max(5),
     }),
+    // ✅ RECOMMENDATION - NOW ARRAY (Portable Text) FOR PARAGRAPH BREAKS
     defineField({
       name: 'recommendation',
       title: 'Recommendation',
-      type: 'text',
+      type: 'array',
       group: 'content',
-      description: 'Why do you recommend this book?',
-      rows: 4,
+      of: [{ type: 'block' }],
+      description: 'Why do you recommend this book? (supports paragraphs, bold, italic, etc.)',
     }),
     defineField({
       name: 'notes',
@@ -91,6 +92,15 @@ export default defineType({
       title: 'Publish Date',
       type: 'datetime',
       group: 'content',
+      initialValue: () => new Date().toISOString(),
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'likes',
+      title: 'Likes',
+      type: 'number',
+      group: 'content',
+      initialValue: 0,
     }),
     defineField({
       name: 'seoTitle',
@@ -115,4 +125,11 @@ export default defineType({
       description: 'Image shown when shared on social media',
     }),
   ],
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'authorName',
+      media: 'coverImage',
+    },
+  },
 })

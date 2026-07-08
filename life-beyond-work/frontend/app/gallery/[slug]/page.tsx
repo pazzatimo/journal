@@ -1,5 +1,21 @@
+'use client'
+
 import { client, urlFor } from '@/lib/sanity'
 import Image from 'next/image'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  LinkedinShareButton,
+  WhatsappShareButton,
+  EmailShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  LinkedinIcon,
+  WhatsappIcon,
+  EmailIcon,
+} from 'next-share'
 
 async function getGallery(slug: string) {
   const allGalleries = await client.fetch(`
@@ -12,69 +28,502 @@ async function getGallery(slug: string) {
       slug
     }
   `)
-  
-  const gallery = allGalleries.find((a: any) => a.slug?.current === slug)
-  return gallery || null
+  return allGalleries.find((g: any) => g.slug?.current === slug) || null
 }
 
-export default async function GalleryDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const gallery = await getGallery(slug)
+// Get or create galleryImage for ALL images in a gallery
+async function getOrCreateAllGalleryImages(galleryId: string, imageCount: number) {
+  try {
+    const res = await fetch('/api/gallery-image/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ galleryId, imageCount }),
+    })
+    if (!res.ok) {
+      const error = await res.json()
+      console.error('❌ Batch API error:', error)
+      throw new Error(error.error || 'Failed to create gallery images')
+    }
+    const data = await res.json()
+    return data.images
+  } catch (error) {
+    console.error('❌ Failed to get/create gallery images:', error)
+    return []
+  }
+}
+
+// Like Button Component
+function GalleryLikeButton({ 
+  imageId, 
+  initialLikes, 
+  onLikeUpdate 
+}: { 
+  imageId: string; 
+  initialLikes: number;
+  onLikeUpdate?: (likes: number) => void;
+}) {
+  const [likes, setLikes] = useState(initialLikes)
+  const [liked, setLiked] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleLike = async () => {
+    if (liked || loading) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/like/gallery-image/${imageId}`, { method: 'POST' })
+      const data = await res.json()
+      if (data.likes !== undefined) {
+        const newLikes = data.likes
+        setLikes(newLikes)
+        setLiked(true)
+        if (onLikeUpdate) onLikeUpdate(newLikes)
+      }
+    } catch (error) {
+      console.error('Like error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleLike}
+      disabled={liked || loading}
+      style={{
+        background: 'none',
+        border: 'none',
+        cursor: liked ? 'default' : 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.25rem',
+        color: liked ? '#ef4444' : '#6b7280',
+        fontSize: '0.875rem',
+        padding: '0.25rem 0.5rem',
+        borderRadius: '0.375rem',
+        backgroundColor: liked ? '#fef2f2' : 'transparent',
+      }}
+    >
+      <span style={{ fontSize: '1.2rem' }}>{liked ? '❤️' : '🤍'}</span>
+      <span>{likes}</span>
+    </button>
+  )
+}
+
+function ImageShareButtons({ url, title }: { url: string; title: string }) {
+  return (
+    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <span style={{ fontSize: '0.75rem', color: '#9ca3af', marginRight: '0.25rem' }}>Share:</span>
+      <FacebookShareButton url={url} quote={title}>
+        <FacebookIcon size={28} round />
+      </FacebookShareButton>
+      <TwitterShareButton url={url} title={title}>
+        <TwitterIcon size={28} round />
+      </TwitterShareButton>
+      <LinkedinShareButton url={url}>
+        <LinkedinIcon size={28} round />
+      </LinkedinShareButton>
+      <WhatsappShareButton url={url} title={title}>
+        <WhatsappIcon size={28} round />
+      </WhatsappShareButton>
+      <EmailShareButton url={url} subject={title} body={`Check out this photo: ${title}\n\n${url}`}>
+        <EmailIcon size={28} round />
+      </EmailShareButton>
+    </div>
+  )
+}
+
+function ImageModal({
+  item,
+  galleryTitle,
+  galleryId,
+  imageIndex,
+  imageId,
+  initialLikes,
+  onLikeUpdate,
+  onClose,
+  baseUrl,
+  onNext,
+  onPrev,
+  hasNext,
+  hasPrev,
+}: {
+  item: any
+  galleryTitle: string
+  galleryId: string
+  imageIndex: number
+  imageId: string
+  initialLikes: number
+  onLikeUpdate?: (likes: number) => void
+  onClose: () => void
+  baseUrl: string
+  onNext: () => void
+  onPrev: () => void
+  hasNext: boolean
+  hasPrev: boolean
+}) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    const handleArrowKeys = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') onNext()
+      if (e.key === 'ArrowLeft') onPrev()
+    }
+    document.addEventListener('keydown', handleEscape)
+    document.addEventListener('keydown', handleArrowKeys)
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.removeEventListener('keydown', handleArrowKeys)
+    }
+  }, [onClose, onNext, onPrev])
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.9)',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem',
+        cursor: 'pointer',
+      }}
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          top: '1.5rem',
+          right: '2rem',
+          background: 'none',
+          border: 'none',
+          color: '#ffffff',
+          fontSize: '2rem',
+          cursor: 'pointer',
+          opacity: 0.7,
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+      >
+        ✕
+      </button>
+
+      {hasPrev && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPrev() }}
+          style={{
+            position: 'absolute',
+            left: '1.5rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'rgba(255,255,255,0.15)',
+            border: 'none',
+            color: '#ffffff',
+            fontSize: '2rem',
+            width: '3rem',
+            height: '3rem',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+        >
+          ←
+        </button>
+      )}
+
+      {hasNext && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext() }}
+          style={{
+            position: 'absolute',
+            right: '1.5rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'rgba(255,255,255,0.15)',
+            border: 'none',
+            color: '#ffffff',
+            fontSize: '2rem',
+            width: '3rem',
+            height: '3rem',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+        >
+          →
+        </button>
+      )}
+
+      <div
+        style={{
+          maxWidth: '80vw',
+          maxHeight: '70vh',
+          position: 'relative',
+          cursor: 'default',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Image
+          src={urlFor(item.image).url()}
+          alt={item.caption || galleryTitle}
+          width={800}
+          height={600}
+          style={{
+            maxWidth: '100%',
+            maxHeight: '70vh',
+            objectFit: 'contain',
+            borderRadius: '0.5rem',
+          }}
+        />
+      </div>
+
+      <div
+        style={{
+          maxWidth: '80vw',
+          marginTop: '1.5rem',
+          color: '#ffffff',
+          textAlign: 'center',
+          cursor: 'default',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
+          {imageIndex + 1} / {galleryTitle}
+        </div>
+        {item.caption && <p style={{ fontSize: '1.1rem', color: '#e5e7eb', marginBottom: '0.5rem' }}>{item.caption}</p>}
+        {item.location && <p style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '0.25rem' }}>📍 {item.location}</p>}
+        {item.date && <p style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '1rem' }}>📅 {item.date}</p>}
+
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingTop: '1rem',
+            borderTop: '1px solid rgba(255,255,255,0.1)',
+          }}
+        >
+          <GalleryLikeButton 
+            imageId={imageId} 
+            initialLikes={initialLikes} 
+            onLikeUpdate={onLikeUpdate}
+          />
+          <ImageShareButtons url={`${baseUrl}/gallery/${galleryId}`} title={item.caption || galleryTitle} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function GalleryDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const [gallery, setGallery] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const [imageLikes, setImageLikes] = useState<Record<string, number>>({})
+  const [imageIds, setImageIds] = useState<Record<string, string>>({})
+
+  // Load gallery data
+  useEffect(() => {
+    let mounted = true
+
+    const loadGallery = async () => {
+      try {
+        const p = await params
+        const data = await getGallery(p.slug)
+        if (!mounted) return
+        
+        setGallery(data)
+        
+        if (data && data.images && data.images.length > 0) {
+          // Get or create galleryImage documents for all images
+          console.log(`📸 Creating galleryImage docs for ${data.images.length} images in gallery: ${data._id}`)
+          const imagesData = await getOrCreateAllGalleryImages(data._id, data.images.length)
+          
+          if (!mounted) return
+          
+          const likesMap: Record<string, number> = {}
+          const idMap: Record<string, string> = {}
+          if (Array.isArray(imagesData)) {
+            imagesData.forEach((img: any) => {
+              likesMap[img.imageIndex] = img.likes || 0
+              idMap[img.imageIndex] = img._id
+            })
+          }
+          setImageLikes(likesMap)
+          setImageIds(idMap)
+        }
+      } catch (error) {
+        console.error('❌ Error loading gallery:', error)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    loadGallery()
+    return () => { mounted = false }
+  }, [params])
+
+  const handleImageClick = (index: number) => {
+    setSelectedIndex(index)
+  }
+
+  const handleCloseModal = () => {
+    setSelectedIndex(null)
+  }
+
+  const handleNext = () => {
+    if (selectedIndex !== null && gallery && selectedIndex < gallery.images.length - 1) {
+      setSelectedIndex(selectedIndex + 1)
+    }
+  }
+
+  const handlePrev = () => {
+    if (selectedIndex !== null && selectedIndex > 0) {
+      setSelectedIndex(selectedIndex - 1)
+    }
+  }
+
+  const handleLikeUpdate = (index: number, newLikes: number) => {
+    setImageLikes(prev => ({ ...prev, [index]: newLikes }))
+  }
+
+  const baseUrl = 'https://timopazza.com'
+
+  if (loading) {
+    return (
+      <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
+        <p style={{ color: '#9ca3af' }}>Loading gallery...</p>
+      </div>
+    )
+  }
 
   if (!gallery) {
     return (
-      <main className="max-w-4xl mx-auto px-6 py-16">
-        <h1 className="text-2xl font-light">Gallery not found</h1>
-        <p className="text-gray-600 mt-4">The gallery you're looking for doesn't exist.</p>
-        <a href="/gallery" className="text-blue-600 hover:underline mt-4 inline-block">← Back to all galleries</a>
-      </main>
+      <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: '300' }}>Gallery not found</h1>
+        <Link href="/gallery" style={{ color: '#2563eb', textDecoration: 'none' }}>← Back to galleries</Link>
+      </div>
     )
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-16">
-      <h1 className="text-4xl font-light mb-4">{gallery.title}</h1>
-      
-      <div className="text-sm text-gray-500 mb-8">
-        <time dateTime={gallery.publishedAt}>
-          {gallery.publishedAt 
-            ? new Date(gallery.publishedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })
-            : 'Date not set'
-          }
-        </time>
-      </div>
-      
+    <div className="container" style={{ padding: '2rem 0 4rem 0' }}>
+      <Link href="/gallery" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
+        ← Back to galleries
+      </Link>
+
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '0.5rem' }}>{gallery.title}</h1>
       {gallery.description && (
-        <p className="text-lg text-gray-600 mb-8">{gallery.description}</p>
+        <p style={{ color: '#4b5563', fontSize: '1.1rem', marginBottom: '1.5rem' }}>{gallery.description}</p>
       )}
-      
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {gallery.images && gallery.images.map((item: any, index: number) => (
-          <div key={index} className="group relative">
-            <div className="relative h-64 w-full rounded-lg overflow-hidden">
-              <Image
-                src={urlFor(item.image).url()}
-                alt={item.caption || gallery.title}
-                fill
-                className="object-cover"
-              />
-            </div>
-            {item.caption && (
-              <p className="text-sm text-gray-500 mt-2">{item.caption}</p>
-            )}
-            {item.location && (
-              <p className="text-xs text-gray-400">📍 {item.location}</p>
-            )}
-            {item.date && (
-              <p className="text-xs text-gray-400">📅 {item.date}</p>
-            )}
-          </div>
-        ))}
+      {gallery.publishedAt && (
+        <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '2rem' }}>
+          {new Date(gallery.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+      )}
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '1rem',
+        }}
+      >
+        {gallery.images &&
+          gallery.images.map((item: any, index: number) => {
+            const likeCount = imageLikes[index] || 0
+            
+            return (
+              <div
+                key={index}
+                onClick={() => handleImageClick(index)}
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  paddingBottom: '100%',
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '0.5rem',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)'
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                <Image
+                  src={urlFor(item.image).url()}
+                  alt={item.caption || gallery.title}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 768px) 100vw, 200px"
+                />
+                {likeCount > 0 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '0.5rem',
+                      right: '0.5rem',
+                      background: 'rgba(0,0,0,0.7)',
+                      color: '#ffffff',
+                      fontSize: '0.7rem',
+                      padding: '0.2rem 0.5rem',
+                      borderRadius: '9999px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      backdropFilter: 'blur(4px)',
+                    }}
+                  >
+                    ❤️ {likeCount}
+                  </div>
+                )}
+              </div>
+            )
+          })}
       </div>
-    </main>
+
+      {selectedIndex !== null && gallery.images && gallery.images[selectedIndex] && (
+        <ImageModal
+          item={gallery.images[selectedIndex]}
+          galleryTitle={gallery.title}
+          galleryId={gallery._id}
+          imageIndex={selectedIndex}
+          imageId={imageIds[selectedIndex] || ''}
+          initialLikes={imageLikes[selectedIndex] || 0}
+          onLikeUpdate={(newLikes) => handleLikeUpdate(selectedIndex, newLikes)}
+          onClose={handleCloseModal}
+          baseUrl={baseUrl}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          hasNext={selectedIndex < gallery.images.length - 1}
+          hasPrev={selectedIndex > 0}
+        />
+      )}
+    </div>
   )
 }

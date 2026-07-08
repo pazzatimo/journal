@@ -63,6 +63,15 @@ export default defineType({
       title: 'Publish Date',
       type: 'datetime',
       group: 'content',
+      initialValue: () => new Date().toISOString(),
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'likes',
+      title: 'Likes',
+      type: 'number',
+      group: 'content',
+      initialValue: 0,
     }),
     defineField({
       name: 'seoTitle',
@@ -87,4 +96,10 @@ export default defineType({
       description: 'Image shown when shared on social media',
     }),
   ],
+  preview: {
+    select: {
+      title: 'title',
+      media: 'coverImage',
+    },
+  },
 })

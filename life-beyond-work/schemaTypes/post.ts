@@ -92,8 +92,15 @@ export default defineType({
       title: 'Publish Date',
       type: 'datetime',
       group: 'settings',
-      initialValue: () => new Date().toISOString(), // Auto-set to today's date
+      initialValue: () => new Date().toISOString(),
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'likes',
+      title: 'Likes',
+      type: 'number',
+      group: 'settings',
+      initialValue: 0,
     }),
     defineField({
       name: 'seoTitle',

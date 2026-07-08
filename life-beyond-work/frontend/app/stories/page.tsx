@@ -9,8 +9,7 @@ async function getStories() {
       title,
       slug,
       publishedAt,
-      coverImage,
-      storyContent
+      coverImage
     }
   `)
 }
@@ -19,37 +18,46 @@ export default async function StoriesPage() {
   const stories = await getStories()
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-4xl font-light mb-8">Stories</h1>
-      
-      <div className="grid md:grid-cols-2 gap-8">
-        {stories.length === 0 ? (
-          <p className="text-gray-500 col-span-2">No stories yet.</p>
-        ) : (
-          stories.map((story: any) => (
-            <article key={story._id} className="group">
-              <Link href={`/stories/${story.slug?.current}`}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 2rem 4rem 2rem' }}>
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '2rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
+        Stories
+      </h1>
+
+      {stories.length === 0 ? (
+        <p style={{ color: '#9ca3af' }}>No stories yet.</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '2rem' }}>
+          {stories.map((story: any) => (
+            <article key={story._id}>
+              <Link href={`/stories/${story.slug?.current}`} style={{ textDecoration: 'none' }}>
                 {story.coverImage && (
-                  <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
+                  <div style={{ position: 'relative', height: '180px', borderRadius: '0.5rem', overflow: 'hidden', marginBottom: '0.75rem' }}>
                     <Image
                       src={urlFor(story.coverImage).url()}
                       alt={story.title}
                       fill
-                      className="object-cover group-hover:scale-105 transition duration-300"
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 768px) 100vw, 260px"
                     />
                   </div>
                 )}
-                <h2 className="text-xl font-medium group-hover:text-blue-600 transition">
+                <h2 style={{ fontSize: '1.1rem', fontWeight: '400', color: '#1a1a1a' }}>
                   {story.title}
                 </h2>
-                <p className="text-sm text-gray-400 mt-2">
-                  {new Date(story.publishedAt).toLocaleDateString()}
+                <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                  {story.publishedAt
+                    ? new Date(story.publishedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : ''}
                 </p>
               </Link>
             </article>
-          ))
-        )}
-      </div>
-    </main>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

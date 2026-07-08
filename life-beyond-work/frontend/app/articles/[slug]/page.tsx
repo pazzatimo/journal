@@ -1,69 +1,10 @@
-'use client'
-
 import { client, urlFor } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 import { PortableText } from '@portabletext/react'
-import React from 'react'
-import {
-  FacebookShareButton,
-  TwitterShareButton,
-  LinkedinShareButton,
-  WhatsappShareButton,
-  EmailShareButton,
-  FacebookIcon,
-  TwitterIcon,
-  LinkedinIcon,
-  WhatsappIcon,
-  EmailIcon,
-} from 'next-share'
-import Giscus from '@giscus/react'
-
-function LikeButton({ initialLikes, id, type }: { initialLikes: number; id: string; type: string }) {
-  const [likes, setLikes] = React.useState(initialLikes)
-  const [liked, setLiked] = React.useState(false)
-  const [loading, setLoading] = React.useState(false)
-
-  const handleLike = async () => {
-    if (liked || loading) return
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/like/${type}/${id}`, { method: 'POST' })
-      const data = await res.json()
-      if (data.likes) {
-        setLikes(data.likes)
-        setLiked(true)
-      }
-    } catch (error) {
-      console.error('Like error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <button
-      onClick={handleLike}
-      disabled={liked || loading}
-      style={{
-        background: 'none',
-        border: 'none',
-        cursor: liked ? 'default' : 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.25rem',
-        color: liked ? '#ef4444' : '#6b7280',
-        fontSize: '0.875rem',
-        padding: '0.25rem 0.5rem',
-        borderRadius: '0.375rem',
-        backgroundColor: liked ? '#fef2f2' : 'transparent',
-      }}
-    >
-      <span style={{ fontSize: '1.2rem' }}>{liked ? '❤️' : '🤍'}</span>
-      <span>{likes}</span>
-    </button>
-  )
-}
+import { LikeButton } from '@/components/LikeButton'
+import { Comments } from '@/components/Comments'
+import { ShareButtons } from '@/components/ShareButtons'
 
 const portableTextComponents = {
   block: {
@@ -92,6 +33,8 @@ const portableTextComponents = {
 }
 
 async function getArticle(slug: string) {
+  console.log('🔍 Looking for article with slug:', slug)
+
   const allArticles = await client.fetch(`
     *[_type == "post"] {
       _id,
@@ -105,18 +48,40 @@ async function getArticle(slug: string) {
       author-> { name }
     }
   `)
-  return allArticles.find((a: any) => a.slug?.current === slug) || null
+
+  console.log('📚 Total articles found:', allArticles.length)
+  console.log('📋 All article slugs:', allArticles.map((a: any) => a.slug?.current))
+
+  const article = allArticles.find((a: any) => a.slug?.current === slug)
+
+  if (article) {
+    console.log('✅ Found article:', article.title)
+  } else {
+    console.log('❌ No article found for slug:', slug)
+  }
+
+  return article || null
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  console.log('📌 URL slug:', slug)
+
   const article = await getArticle(slug)
 
   if (!article) {
     return (
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '4rem 2rem' }}>
         <h1>Article not found</h1>
-        <Link href="/articles">← Back</Link>
+        <p style={{ color: '#6b7280', marginTop: '1rem' }}>
+          No article found with slug: <strong>{slug}</strong>
+        </p>
+        <p style={{ color: '#6b7280', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+          Check the terminal for all available slugs.
+        </p>
+        <Link href="/articles" style={{ color: '#2563eb', textDecoration: 'underline', display: 'inline-block', marginTop: '1rem' }}>
+          ← Back to all articles
+        </Link>
       </div>
     )
   }
@@ -140,7 +105,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
         {article.coverImage && (
           <div style={{ position: 'relative', height: '400px', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem', backgroundColor: '#f3f4f6' }}>
-            <Image src={urlFor(article.coverImage).url()} alt={article.title} fill style={{ objectFit: 'cover' }} priority />
+            <Image src={urlFor(article.coverImage).url()} alt={article.title} fill style={{ objectFit: 'cover' }} priority sizes="(max-width: 720px) 100vw, 720px" />
           </div>
         )}
 
@@ -154,39 +119,16 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {article.body && <PortableText value={article.body} components={portableTextComponents} />}
         </div>
 
-        {/* Social Actions */}
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
             <LikeButton initialLikes={article.likes || 0} id={article._id} type="article" />
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '1rem' }}>
-              <span style={{ fontSize: '0.75rem', color: '#9ca3af', marginRight: '0.25rem' }}>Share:</span>
-              <FacebookShareButton url={url} quote={title}><FacebookIcon size={32} round /></FacebookShareButton>
-              <TwitterShareButton url={url} title={title}><TwitterIcon size={32} round /></TwitterShareButton>
-              <LinkedinShareButton url={url}><LinkedinIcon size={32} round /></LinkedinShareButton>
-              <WhatsappShareButton url={url} title={title}><WhatsappIcon size={32} round /></WhatsappShareButton>
-              <EmailShareButton url={url} subject={title} body="Check out this article:"><EmailIcon size={32} round /></EmailShareButton>
-            </div>
+            <ShareButtons url={url} title={title} />
           </div>
         </div>
 
-        {/* Comments */}
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
           <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
-          <Giscus
-            id="comments"
-            repo="YOUR_USERNAME/YOUR_REPO"
-            repoId="YOUR_REPO_ID"
-            category="Announcements"
-            categoryId="YOUR_CATEGORY_ID"
-            mapping="pathname"
-            strict="0"
-            reactionsEnabled="1"
-            emitMetadata="0"
-            inputPosition="top"
-            theme="light"
-            lang="en"
-            loading="lazy"
-          />
+          <Comments id={article._id} title={article.title} url={url} />
         </div>
       </article>
     </div>

@@ -1,6 +1,9 @@
+'use client'
+
 import { client, urlFor } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 async function getGalleries() {
   return await client.fetch(`
@@ -15,44 +18,118 @@ async function getGalleries() {
   `)
 }
 
-export default async function GalleryPage() {
-  const galleries = await getGalleries()
+export default function GalleryPage() {
+  const [galleries, setGalleries] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getGalleries()
+        setGalleries(data)
+      } catch (err: any) {
+        console.error('Error fetching galleries:', err)
+        setError('Failed to load galleries. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
+        <p style={{ color: '#9ca3af' }}>Loading galleries...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
+        <p style={{ color: '#ef4444' }}>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            marginTop: '1rem',
+            padding: '0.5rem 1.5rem',
+            background: '#1a1a1a',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '0.375rem',
+            cursor: 'pointer'
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-16">
-      <h1 className="text-4xl font-light mb-8">Gallery</h1>
-      
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {galleries.length === 0 ? (
-          <p className="text-gray-500 col-span-3">No galleries yet.</p>
-        ) : (
-          galleries.map((gallery: any) => (
-            <article key={gallery._id} className="group">
-              <Link href={`/gallery/${gallery.slug?.current}`}>
-                {gallery.images && gallery.images.length > 0 && (
-                  <div className="relative h-56 w-full rounded-lg overflow-hidden mb-3">
-                    <Image
-                      src={urlFor(gallery.images[0].image).url()}
-                      alt={gallery.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition duration-300"
-                    />
+    <div className="container" style={{ padding: '2rem 0 4rem 0' }}>
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '2rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
+        Gallery
+      </h1>
+
+      {galleries.length === 0 ? (
+        <p style={{ color: '#9ca3af' }}>No galleries yet. Create one in Sanity Studio!</p>
+      ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '2rem'
+        }}>
+          {galleries.map((gallery: any) => {
+            const coverImage = gallery.images && gallery.images.length > 0 ? gallery.images[0].image : null
+            return (
+              <Link key={gallery._id} href={`/gallery/${gallery.slug?.current}`} style={{ textDecoration: 'none' }}>
+                <div className="grid-card" style={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  borderRadius: '0.75rem',
+                  background: '#ffffff',
+                  border: '1px solid #e5e7eb',
+                  transition: 'box-shadow 0.2s, transform 0.2s',
+                }}>
+                  <div style={{ position: 'relative', width: '100%', paddingBottom: '66.67%', backgroundColor: '#f3f4f6' }}>
+                    {coverImage ? (
+                      <Image
+                        src={urlFor(coverImage).url()}
+                        alt={gallery.title}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="(max-width: 768px) 100vw, 280px"
+                      />
+                    ) : (
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '0.875rem' }}>
+                        No cover image
+                      </div>
+                    )}
                   </div>
-                )}
-                <h2 className="text-xl font-medium group-hover:text-blue-600 transition">
-                  {gallery.title}
-                </h2>
-                {gallery.description && (
-                  <p className="text-gray-600 text-sm mt-1">{gallery.description}</p>
-                )}
-                <p className="text-sm text-gray-400 mt-2">
-                  {gallery.images?.length || 0} images
-                </p>
+                  <div style={{ padding: '1rem' }}>
+                    <h2 style={{ fontSize: '1.2rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.25rem' }}>
+                      {gallery.title}
+                    </h2>
+                    {gallery.description && (
+                      <p style={{ color: '#4b5563', fontSize: '0.875rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {gallery.description}
+                      </p>
+                    )}
+                    <p style={{ color: '#9ca3af', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+                      {gallery.images ? `${gallery.images.length} photos` : '0 photos'}
+                    </p>
+                  </div>
+                </div>
               </Link>
-            </article>
-          ))
-        )}
-      </div>
-    </main>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
