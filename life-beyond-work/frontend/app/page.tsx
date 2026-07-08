@@ -2,7 +2,7 @@ import { client, urlFor } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 
-// Define types
+// Define types for content items
 interface Article {
   _id: string
   title: string
@@ -48,10 +48,10 @@ async function getSiteSettings() {
         heroTitle,
         heroSubtitle
       }
-    `)
+    `);
   } catch (error) {
-    console.error('Failed to fetch hero settings:', error)
-    return null
+    console.error('Failed to fetch hero settings:', error);
+    return null;
   }
 }
 
@@ -114,7 +114,7 @@ export default async function Home() {
   const heroTitle = siteSettings?.heroTitle || 'Thoughts, Stories & Moments Beyond Work'
   const heroSubtitle = siteSettings?.heroSubtitle || 'A personal journal by Timo Pazza — exploring life beyond the professional world.'
 
-  // Explicitly typed map calls
+  // Explicit types on map functions
   const allPublications = [
     ...articles.map((a: Article) => ({ ...a, type: 'article', link: `/articles/${a.slug?.current}` })),
     ...stories.map((s: Story) => ({ ...s, type: 'story', link: `/stories/${s.slug?.current}` })),
