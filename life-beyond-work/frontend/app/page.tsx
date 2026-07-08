@@ -2,6 +2,44 @@ import { client, urlFor } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 
+// Define types for content items
+interface Article {
+  _id: string
+  title: string
+  slug: { current: string }
+  publishedAt: string
+  summary: string
+  coverImage: any
+  _type: string
+}
+
+interface Story {
+  _id: string
+  title: string
+  slug: { current: string }
+  publishedAt: string
+  coverImage: any
+  _type: string
+}
+
+interface Book {
+  _id: string
+  title: string
+  slug: { current: string }
+  authorName: string
+  publishedAt: string
+  coverImage: any
+  rating: number
+  _type: string
+}
+
+interface Quote {
+  _id: string
+  quoteText: string
+  quoteAuthor: string
+  context: string
+}
+
 async function getSiteSettings() {
   try {
     return await client.fetch(`
@@ -18,7 +56,7 @@ async function getSiteSettings() {
 }
 
 async function getContent() {
-  const articles = await client.fetch(`
+  const articles: Article[] = await client.fetch(`
     *[_type == "post"] | order(publishedAt desc) [0...6] {
       _id,
       title,
@@ -30,7 +68,7 @@ async function getContent() {
     }
   `)
 
-  const stories = await client.fetch(`
+  const stories: Story[] = await client.fetch(`
     *[_type == "story"] | order(publishedAt desc) [0...4] {
       _id,
       title,
@@ -41,7 +79,7 @@ async function getContent() {
     }
   `)
 
-  const quotes = await client.fetch(`
+  const quotes: Quote[] = await client.fetch(`
     *[_type == "quote"] | order(publishedAt desc) [0...3] {
       _id,
       quoteText,
@@ -50,7 +88,7 @@ async function getContent() {
     }
   `)
 
-  const books = await client.fetch(`
+  const books: Book[] = await client.fetch(`
     *[_type == "book"] | order(publishedAt desc) [0...4] {
       _id,
       title,
@@ -76,10 +114,11 @@ export default async function Home() {
   const heroTitle = siteSettings?.heroTitle || 'Thoughts, Stories & Moments Beyond Work'
   const heroSubtitle = siteSettings?.heroSubtitle || 'A personal journal by Timo Pazza — exploring life beyond the professional world.'
 
+  // Now TypeScript knows the types
   const allPublications = [
-    ...articles.map(a => ({ ...a, type: 'article', link: `/articles/${a.slug?.current}` })),
-    ...stories.map(s => ({ ...s, type: 'story', link: `/stories/${s.slug?.current}` })),
-    ...books.map(b => ({ ...b, type: 'book', link: `/books/${b.slug?.current}` })),
+    ...articles.map((a: Article) => ({ ...a, type: 'article', link: `/articles/${a.slug?.current}` })),
+    ...stories.map((s: Story) => ({ ...s, type: 'story', link: `/stories/${s.slug?.current}` })),
+    ...books.map((b: Book) => ({ ...b, type: 'book', link: `/books/${b.slug?.current}` })),
   ].slice(0, 6)
 
   const getTypeLabel = (type: string) => {
@@ -90,7 +129,7 @@ export default async function Home() {
   return (
     <div className="container" style={{ paddingBottom: '4rem' }}>
       
-      {/* ===== HERO SECTION ===== */}
+      {/* Hero Section */}
       <section className="hero-section">
         {heroImage ? (
           <div className="hero-background">
@@ -124,7 +163,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ===== FEATURED PUBLICATIONS GRID ===== */}
+      {/* Featured Publications Grid */}
       <section style={{ marginBottom: '3rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '400', color: '#1a1a1a' }}>Featured</h2>
@@ -197,7 +236,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ===== LATEST ARTICLES ===== */}
+      {/* Latest Articles */}
       <section style={{ marginBottom: '3rem', borderTop: '1px solid #e5e7eb', paddingTop: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '400', color: '#1a1a1a' }}>Latest Articles</h2>
@@ -213,7 +252,7 @@ export default async function Home() {
           {remainingArticles.length === 0 ? (
             <p style={{ color: '#9ca3af', gridColumn: '1 / -1' }}>No more articles yet.</p>
           ) : (
-            remainingArticles.map((article: any) => (
+            remainingArticles.map((article: Article) => (
               <Link key={article._id} href={`/articles/${article.slug?.current}`} style={{ textDecoration: 'none' }}>
                 <div className="grid-card" style={{ height: '100%', position: 'relative' }}>
                   <div style={{ position: 'relative', height: '200px', width: '100%' }}>
@@ -251,7 +290,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ===== STORIES ===== */}
+      {/* Stories */}
       <section style={{ marginBottom: '3rem', borderTop: '1px solid #e5e7eb', paddingTop: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '400', color: '#1a1a1a' }}>Stories</h2>
@@ -267,7 +306,7 @@ export default async function Home() {
           {stories.length === 0 ? (
             <p style={{ color: '#9ca3af', gridColumn: '1 / -1' }}>No stories yet.</p>
           ) : (
-            stories.map((story: any) => (
+            stories.map((story: Story) => (
               <Link key={story._id} href={`/stories/${story.slug?.current}`} style={{ textDecoration: 'none' }}>
                 <div className="grid-card" style={{ height: '100%', position: 'relative' }}>
                   <div style={{ position: 'relative', height: '160px', width: '100%' }}>
@@ -300,7 +339,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ===== QUOTES ===== */}
+      {/* Quotes */}
       <section style={{ marginBottom: '3rem', borderTop: '1px solid #e5e7eb', paddingTop: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '400', color: '#1a1a1a' }}>Quotes</h2>
@@ -316,7 +355,7 @@ export default async function Home() {
           {quotes.length === 0 ? (
             <p style={{ color: '#9ca3af', gridColumn: '1 / -1' }}>No quotes yet.</p>
           ) : (
-            quotes.map((quote: any) => (
+            quotes.map((quote: Quote) => (
               <blockquote key={quote._id} className="quote-card" style={{ margin: 0 }}>
                 <p style={{ fontSize: '1rem', fontStyle: 'italic', color: '#1a1a1a', lineHeight: '1.6' }}>
                   "{quote.quoteText}"
@@ -331,7 +370,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ===== BOOKS ===== */}
+      {/* Books */}
       <section style={{ borderTop: '1px solid #e5e7eb', paddingTop: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: '400', color: '#1a1a1a' }}>Book Recommendations</h2>
@@ -347,7 +386,7 @@ export default async function Home() {
           {books.length === 0 ? (
             <p style={{ color: '#9ca3af', gridColumn: '1 / -1' }}>No books yet.</p>
           ) : (
-            books.map((book: any) => (
+            books.map((book: Book) => (
               <Link key={book._id} href={`/books/${book.slug?.current}`} style={{ textDecoration: 'none' }}>
                 <div className="grid-card" style={{ height: '100%', textAlign: 'center', position: 'relative' }}>
                   <div style={{ position: 'relative', height: '200px', width: '100%' }}>
