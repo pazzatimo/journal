@@ -4,18 +4,7 @@ import { client, urlFor } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import {
-  FacebookShareButton,
-  TwitterShareButton,
-  LinkedinShareButton,
-  WhatsappShareButton,
-  EmailShareButton,
-  FacebookIcon,
-  TwitterIcon,
-  LinkedinIcon,
-  WhatsappIcon,
-  EmailIcon,
-} from 'next-share'
+import { ShareButtons } from '@/components/ShareButtons'
 
 async function getGallery(slug: string) {
   const allGalleries = await client.fetch(`
@@ -112,29 +101,6 @@ function GalleryLikeButton({
   )
 }
 
-function ImageShareButtons({ url, title }: { url: string; title: string }) {
-  return (
-    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-      <span style={{ fontSize: '0.75rem', color: '#9ca3af', marginRight: '0.25rem' }}>Share:</span>
-      <FacebookShareButton url={url} quote={title}>
-        <FacebookIcon size={28} round />
-      </FacebookShareButton>
-      <TwitterShareButton url={url} title={title}>
-        <TwitterIcon size={28} round />
-      </TwitterShareButton>
-      <LinkedinShareButton url={url}>
-        <LinkedinIcon size={28} round />
-      </LinkedinShareButton>
-      <WhatsappShareButton url={url} title={title}>
-        <WhatsappIcon size={28} round />
-      </WhatsappShareButton>
-      <EmailShareButton url={url} subject={title} body={`Check out this photo: ${title}\n\n${url}`}>
-        <EmailIcon size={28} round />
-      </EmailShareButton>
-    </div>
-  )
-}
-
 function ImageModal({
   item,
   galleryTitle,
@@ -179,6 +145,9 @@ function ImageModal({
       document.removeEventListener('keydown', handleArrowKeys)
     }
   }, [onClose, onNext, onPrev])
+
+  const imageUrl = `${baseUrl}/gallery/${galleryId}/${imageIndex}`
+  const imageTitle = item.caption || galleryTitle
 
   return (
     <div
@@ -330,7 +299,8 @@ function ImageModal({
             initialLikes={initialLikes} 
             onLikeUpdate={onLikeUpdate}
           />
-          <ImageShareButtons url={`${baseUrl}/gallery/${galleryId}`} title={item.caption || galleryTitle} />
+          {/* Use the shared ShareButtons component */}
+          <ShareButtons url={imageUrl} title={imageTitle} />
         </div>
       </div>
     </div>
@@ -407,7 +377,7 @@ export default function GalleryDetailPage({ params }: { params: Promise<{ slug: 
     setImageLikes(prev => ({ ...prev, [index]: newLikes }))
   }
 
-  const baseUrl = 'https://journal-gray-theta.vercel.app'
+  const baseUrl = 'https://timopazza.com'
 
   if (loading) {
     return (
