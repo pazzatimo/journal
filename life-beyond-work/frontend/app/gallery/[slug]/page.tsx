@@ -52,7 +52,7 @@ async function getOrCreateAllGalleryImages(galleryId: string, imageCount: number
   }
 }
 
-// Like Button Component
+// Like Button Component for gallery images
 function GalleryLikeButton({ 
   imageId, 
   initialLikes, 
@@ -67,7 +67,10 @@ function GalleryLikeButton({
   const [loading, setLoading] = useState(false)
 
   const handleLike = async () => {
-    if (liked || loading) return
+    if (liked || loading || !imageId) {
+      console.warn('⚠️ Cannot like: imageId is missing or already liked', { imageId, liked })
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch(`/api/like/gallery-image/${imageId}`, { method: 'POST' })
@@ -88,11 +91,11 @@ function GalleryLikeButton({
   return (
     <button
       onClick={handleLike}
-      disabled={liked || loading}
+      disabled={liked || loading || !imageId}
       style={{
         background: 'none',
         border: 'none',
-        cursor: liked ? 'default' : 'pointer',
+        cursor: (liked || loading || !imageId) ? 'default' : 'pointer',
         display: 'flex',
         alignItems: 'center',
         gap: '0.25rem',
@@ -354,8 +357,6 @@ export default function GalleryDetailPage({ params }: { params: Promise<{ slug: 
         setGallery(data)
         
         if (data && data.images && data.images.length > 0) {
-          // Get or create galleryImage documents for all images
-          console.log(`📸 Creating galleryImage docs for ${data.images.length} images in gallery: ${data._id}`)
           const imagesData = await getOrCreateAllGalleryImages(data._id, data.images.length)
           
           if (!mounted) return
@@ -406,7 +407,7 @@ export default function GalleryDetailPage({ params }: { params: Promise<{ slug: 
     setImageLikes(prev => ({ ...prev, [index]: newLikes }))
   }
 
-  const baseUrl = 'https://timopazza.com'
+  const baseUrl = 'https://journal-gray-theta.vercel.app'
 
   if (loading) {
     return (

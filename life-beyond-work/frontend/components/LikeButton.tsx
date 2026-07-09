@@ -11,14 +11,26 @@ export function LikeButton({ initialLikes, id, type }: { initialLikes: number; i
     if (liked || loading) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/like/${type}/${id}`, { method: 'POST' })
+      console.log('📤 Sending like request:', { type, id })
+      
+      const res = await fetch(`/api/like/${type}/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
       const data = await res.json()
-      if (data.likes) {
+      console.log('📥 Like response:', data)
+      
+      if (data.likes !== undefined) {
         setLikes(data.likes)
         setLiked(true)
+      } else {
+        console.error('❌ Invalid response:', data)
       }
     } catch (error) {
-      console.error('Like error:', error)
+      console.error('❌ Like error:', error)
     } finally {
       setLoading(false)
     }
@@ -40,6 +52,7 @@ export function LikeButton({ initialLikes, id, type }: { initialLikes: number; i
         padding: '0.25rem 0.5rem',
         borderRadius: '0.375rem',
         backgroundColor: liked ? '#fef2f2' : 'transparent',
+        transition: 'all 0.2s ease',
       }}
     >
       <span style={{ fontSize: '1.2rem' }}>{liked ? '❤️' : '🤍'}</span>
