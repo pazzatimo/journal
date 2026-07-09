@@ -417,3 +417,110 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.15rem 0.25rem;
   }
 }
+/* ============================================
+   FOOTER - WITH SOCIAL ICONS (Horizontal Cards)
+   ============================================ */
+.site-footer {
+  background: #1a1a1a;
+  border-top: none;
+  padding: 2.5rem 1.5rem 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4rem;
+}
+
+.footer-container {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.footer-brand img,
+.footer-brand svg {
+  filter: brightness(0) invert(1);
+}
+
+/* Social Icons - Horizontal row with card styling */
+.footer-social {
+  display: flex;
+  flex-direction: row; /* ← Ensure horizontal */
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.footer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.25s ease;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.footer-social a:hover {
+  color: #ffffff;
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.footer-social a svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8;
+}
+
+/* Individual brand colors on hover (optional) */
+.footer-social a:hover:nth-child(1) { background: #000000; border-color: #ffffff; } /* X */
+.footer-social a:hover:nth-child(2) { background: #ff0000; border-color: #ff0000; } /* YouTube */
+.footer-social a:hover:nth-child(3) { background: #e4405f; border-color: #e4405f; } /* Instagram */
+.footer-social a:hover:nth-child(4) { background: #000000; border-color: #ffffff; } /* TikTok */
+.footer-social a:hover:nth-child(5) { background: #333333; border-color: #ffffff; } /* GitHub */
+
+.footer-copy {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 0.5rem;
+}
+
+.footer-tagline {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.25);
+  margin-top: 0.2rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .footer-social {
+    gap: 0.75rem;
+  }
+  .footer-social a {
+    width: 38px;
+    height: 38px;
+  }
+  .footer-social a svg {
+    width: 17px;
+    height: 17px;
+  }
+}
