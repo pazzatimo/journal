@@ -114,7 +114,6 @@ export default async function Home() {
   const heroTitle = siteSettings?.heroTitle || 'Thoughts, Stories & Moments Beyond Work'
   const heroSubtitle = siteSettings?.heroSubtitle || 'A personal journal by Timo Pazza — exploring life beyond the professional world.'
 
-  // Explicit types on map functions
   const allPublications = [
     ...articles.map((a: Article) => ({ ...a, type: 'article', link: `/articles/${a.slug?.current}` })),
     ...stories.map((s: Story) => ({ ...s, type: 'story', link: `/stories/${s.slug?.current}` })),
@@ -129,7 +128,7 @@ export default async function Home() {
   return (
     <div className="container" style={{ paddingBottom: '4rem' }}>
       
-      {/* Hero Section */}
+      {/* ===== HERO SECTION - POLISHED ===== */}
       <section className="hero-section">
         {heroImage ? (
           <div className="hero-background">
@@ -145,21 +144,23 @@ export default async function Home() {
             <div className="hero-overlay" />
           </div>
         ) : (
-          <div className="hero-background" style={{ background: 'linear-gradient(135deg, #e5e7eb, #d1d5db)' }} />
+          <div className="hero-background" style={{ background: 'linear-gradient(135deg, #2d2d2d, #4a4a4a, #2d2d2d)' }} />
         )}
 
         <div className="hero-content">
           <span className="hero-badge">Life Beyond Work</span>
           <h1 className="hero-title">{heroTitle}</h1>
           <p className="hero-description">{heroSubtitle}</p>
-          {featuredArticle && (
-            <Link 
-              href={`/articles/${featuredArticle.slug?.current}`}
-              className="hero-cta"
-            >
-              Read the latest article →
-            </Link>
-          )}
+          <div>
+            {featuredArticle && (
+              <Link 
+                href={`/articles/${featuredArticle.slug?.current}`}
+                className="hero-cta"
+              >
+                Read the latest article →
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 

@@ -17,7 +17,7 @@ async function getSiteSettings() {
       }
     `);
   } catch (error) {
-    console.error('Failed to fetch site settings:', error);
+    console.error('Failed to fetch site settings for logo:', error);
     return null;
   }
 }
@@ -35,7 +35,7 @@ export default async function RootLayout({
       <body>
         {/* Navbar */}
         <nav className="top-nav">
-          <Link href="/" className="top-nav-brand">
+          <Link href="/" className="top-nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {logoImage ? (
               <Image
                 src={urlFor(logoImage).url()}
@@ -46,6 +46,7 @@ export default async function RootLayout({
                 priority
               />
             ) : (
+              // Fallback SVG icon
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="2" y="4" width="28" height="24" rx="2" stroke="#ffffff" strokeWidth="2"/>
                 <line x1="8" y1="10" x2="24" y2="10" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round"/>
@@ -55,6 +56,7 @@ export default async function RootLayout({
                 <line x1="26" y1="22" x2="28" y2="24" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             )}
+            <span style={{ fontSize: '1.1rem', fontWeight: '500', color: '#ffffff' }}>Life Beyond Work</span>
           </Link>
 
           <div className="top-nav-links">
