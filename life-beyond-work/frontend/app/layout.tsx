@@ -4,22 +4,70 @@ import Image from "next/image";
 import { client, urlFor } from "@/lib/sanity";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Life Beyond Work – A personal journal by Timo Pazza",
-  description: "Thoughts, stories, books, lessons, experiences and moments beyond the professional world.",
-};
-
+// Dynamic metadata based on site settings
 async function getSiteSettings() {
   try {
     return await client.fetch(`
       *[_type == "siteSettings"][0] {
-        logo
+        logo,
+        heroTitle,
+        heroSubtitle
       }
     `);
   } catch (error) {
-    console.error('Failed to fetch site settings for logo:', error);
+    console.error('Failed to fetch site settings:', error);
     return null;
   }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const siteSettings = await getSiteSettings();
+  
+  const title = siteSettings?.heroTitle || 'Life Beyond Work';
+  const description = siteSettings?.heroSubtitle || 'Thoughts, stories, books, lessons, experiences and moments beyond the professional world.';
+  
+  return {
+    title: {
+      default: `${title} – A personal journal by Timo Pazza`,
+      template: `%s | ${title} – A personal journal by Timo Pazza`,
+    },
+    description: description,
+    keywords: ['journal', 'personal blog', 'life beyond work', 'stories', 'articles', 'books', 'quotes', 'Timo Pazza'],
+    authors: [{ name: 'Timo Pazza' }],
+    creator: 'Timo Pazza',
+    publisher: 'Life Beyond Work',
+    robots: {
+      index: true,
+      follow: true,
+    },
+    openGraph: {
+      title: `${title} – A personal journal by Timo Pazza`,
+      description: description,
+      url: 'https://timopazza.com',
+      siteName: 'Life Beyond Work',
+      images: [
+        {
+          url: 'https://timopazza.com/og-image.jpg',
+          width: 1200,
+          height: 630,
+          alt: 'Life Beyond Work',
+        },
+      ],
+      locale: 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} – A personal journal by Timo Pazza`,
+      description: description,
+      images: ['https://timopazza.com/og-image.jpg'],
+    },
+    icons: {
+      icon: '/favicon.ico',
+      apple: '/apple-touch-icon.png',
+    },
+    metadataBase: new URL('https://timopazza.com'),
+  };
 }
 
 export default async function RootLayout({
@@ -72,15 +120,9 @@ export default async function RootLayout({
           {children}
         </main>
 
-        {/* Footer - Text Only + Social Icons */}
+        {/* Footer - Text only + Social Icons */}
         <footer className="site-footer">
           <div className="footer-container">
-            {/* Text Only (no logo) */}
-            <div className="footer-brand">
-              <span>Life Beyond Work</span>
-            </div>
-
-            {/* Social Icons */}
             <div className="footer-social">
               <a href="https://x.com/timopazza" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

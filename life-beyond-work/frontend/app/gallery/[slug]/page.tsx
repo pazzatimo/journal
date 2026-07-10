@@ -299,7 +299,6 @@ function ImageModal({
             initialLikes={initialLikes} 
             onLikeUpdate={onLikeUpdate}
           />
-          {/* Use the shared ShareButtons component */}
           <ShareButtons url={imageUrl} title={imageTitle} />
         </div>
       </div>
