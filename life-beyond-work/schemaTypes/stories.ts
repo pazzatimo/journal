@@ -7,6 +7,7 @@ export default defineType({
   icon: () => '📖',
   groups: [
     { name: 'content', title: 'Content', default: true },
+    { name: 'media', title: 'Audio & Video' },
     { name: 'seo', title: 'SEO' },
   ],
   fields: [
@@ -66,6 +67,78 @@ export default defineType({
       initialValue: () => new Date().toISOString(),
       validation: (rule) => rule.required(),
     }),
+    // ========== AUDIO FIELD ==========
+    defineField({
+      name: 'audio',
+      title: 'Audio Narration',
+      type: 'object',
+      group: 'media',
+      fields: [
+        defineField({
+          name: 'file',
+          title: 'Audio File',
+          type: 'file',
+          options: {
+            accept: 'audio/*',
+          },
+          description: 'Upload MP3, WAV, or M4A file',
+        }),
+        defineField({
+          name: 'title',
+          title: 'Audio Title',
+          type: 'string',
+          description: 'e.g., "Full Story Narration"',
+          initialValue: 'Listen to this story',
+        }),
+        defineField({
+          name: 'transcript',
+          title: 'Transcript (Optional)',
+          type: 'text',
+          description: 'Full transcript of the audio for accessibility',
+          rows: 4,
+        }),
+      ],
+    }),
+    // ========== VIDEO FIELD ==========
+    defineField({
+      name: 'video',
+      title: 'Video',
+      type: 'object',
+      group: 'media',
+      fields: [
+        defineField({
+          name: 'url',
+          title: 'Video URL',
+          type: 'url',
+          description: 'YouTube, Vimeo, or direct video URL',
+          validation: (rule) =>
+            rule.uri({
+              scheme: ['http', 'https'],
+              allowRelative: false,
+            }),
+        }),
+        defineField({
+          name: 'title',
+          title: 'Video Title',
+          type: 'string',
+          description: 'e.g., "Watch the story come to life"',
+          initialValue: 'Watch this story',
+        }),
+        defineField({
+          name: 'position',
+          title: 'Video Position',
+          type: 'string',
+          options: {
+            list: [
+              { title: 'Top of Story', value: 'top' },
+              { title: 'Bottom of Story', value: 'bottom' },
+            ],
+          },
+          initialValue: 'bottom',
+        }),
+      ],
+    }),
+    // ========== LIKES ==========
     defineField({
       name: 'likes',
       title: 'Likes',
