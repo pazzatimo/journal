@@ -17,6 +17,7 @@ const typeMap: Record<string, string> = {
   quote: 'quote',
   book: 'book',
   'gallery-image': 'galleryImage',
+  media: 'media', // ← Add this line
 }
 
 export async function POST(

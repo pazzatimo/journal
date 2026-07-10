@@ -112,6 +112,7 @@ export default async function RootLayout({
             <Link href="/quotes" className="nav-pill">Quotes</Link>
             <Link href="/books" className="nav-pill">Books</Link>
             <Link href="/gallery" className="nav-pill">Gallery</Link>
+            <Link href="/media" className="nav-pill">Media</Link> {/* ← Add this */}
           </div>
         </nav>
 
