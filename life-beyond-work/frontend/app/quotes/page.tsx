@@ -19,6 +19,18 @@ function getEmbedUrl(url: string): string {
   return url
 }
 
+// Helper to get Sanity file asset URL
+function getSanityFileUrl(assetRef: string): string {
+  if (!assetRef) return ''
+  const ref = assetRef
+  const id = ref.replace(/^file-/, '').replace(/-\w+$/, '')
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
+  const extMatch = ref.match(/-([a-z0-9]+)$/)
+  const ext = extMatch ? extMatch[1] : 'mp3'
+  return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
+}
+
 async function getQuotes() {
   return await client.fetch(`
     *[_type == "quote"] | order(publishedAt desc) {
@@ -38,6 +50,13 @@ async function getQuotes() {
 function AudioPlayer({ audio }: { audio: any }) {
   if (!audio?.file) return null
 
+  let audioUrl = ''
+  if (audio.file.asset?._ref) {
+    audioUrl = getSanityFileUrl(audio.file.asset._ref)
+  }
+
+  if (!audioUrl) return null
+
   return (
     <div style={{
       backgroundColor: '#f3f4f6',
@@ -51,7 +70,7 @@ function AudioPlayer({ audio }: { audio: any }) {
         </p>
       )}
       <audio controls style={{ width: '100%' }}>
-        <source src={urlFor(audio.file).url()} />
+        <source src={audioUrl} />
         Your browser does not support the audio element.
       </audio>
     </div>
@@ -120,7 +139,6 @@ export default async function QuotesPage() {
             const quoteUrl = `${baseUrl}/quotes#${quote._id}`
             const quoteText = quote.quoteText
 
-            // Determine video position
             const videoPosition = quote.video?.position || 'bottom'
             const showVideoTop = videoPosition === 'top'
             const showVideoBottom = videoPosition === 'bottom'
@@ -139,12 +157,10 @@ export default async function QuotesPage() {
                   transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
                 }}
               >
-                {/* Video - Top */}
                 {showVideoTop && quote.video && quote.video.url && (
                   <VideoPlayer video={quote.video} />
                 )}
 
-                {/* Audio */}
                 {quote.audio && quote.audio.file && (
                   <AudioPlayer audio={quote.audio} />
                 )}
@@ -195,7 +211,6 @@ export default async function QuotesPage() {
                   )}
                 </blockquote>
 
-                {/* Video - Bottom */}
                 {showVideoBottom && quote.video && quote.video.url && (
                   <VideoPlayer video={quote.video} />
                 )}

@@ -26,41 +26,32 @@ function getEmbedUrl(url: string): string {
   return url
 }
 
-const portableTextComponents = {
-  block: {
-    normal: ({ children }: any) => <p style={{ marginBottom: '1.5rem', lineHeight: '1.9', color: '#1a1a1a', fontSize: '1.1rem' }}>{children}</p>,
-  },
-  marks: {
-    strong: ({ children }: any) => <strong style={{ fontWeight: 'bold' }}>{children}</strong>,
-    em: ({ children }: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
-    link: ({ value, children }: any) => <a href={value.href} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>{children}</a>,
-  },
-  types: {
-    image: ({ value }: any) => <div style={{ margin: '1.5rem 0' }}><img src={urlFor(value).url()} alt="Image" style={{ borderRadius: '0.75rem', width: '100%' }} /></div>,
-  },
-}
-
-async function getStory(slug: string) {
-  const allStories = await client.fetch(`
-    *[_type == "story"] {
-      _id,
-      title,
-      publishedAt,
-      coverImage,
-      storyContent,
-      categories,
-      slug,
-      likes,
-      audio,
-      video
-    }
-  `)
-  return allStories.find((s: any) => s.slug?.current === slug) || null
+// Helper to get Sanity file asset URL
+function getSanityFileUrl(assetRef: string): string {
+  if (!assetRef) return ''
+  const ref = assetRef
+  // Sanity file assets: file-{id}-{extension}
+  const id = ref.replace(/^file-/, '').replace(/-\w+$/, '')
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
+  // The extension is usually part of the asset, but we'll default to mp3
+  // We can try to detect the extension from the ref
+  const extMatch = ref.match(/-([a-z0-9]+)$/)
+  const ext = extMatch ? extMatch[1] : 'mp3'
+  return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
 }
 
 // Audio Player Component
 function AudioPlayer({ audio }: { audio: any }) {
   if (!audio?.file) return null
+
+  // Get the audio URL from the file asset
+  let audioUrl = ''
+  if (audio.file.asset?._ref) {
+    audioUrl = getSanityFileUrl(audio.file.asset._ref)
+  }
+
+  if (!audioUrl) return null
 
   return (
     <div style={{
@@ -75,7 +66,7 @@ function AudioPlayer({ audio }: { audio: any }) {
         </p>
       )}
       <audio controls style={{ width: '100%' }}>
-        <source src={urlFor(audio.file).url()} />
+        <source src={audioUrl} />
         Your browser does not support the audio element.
       </audio>
       {audio.transcript && (
@@ -129,6 +120,38 @@ function VideoPlayer({ video }: { video: any }) {
   )
 }
 
+const portableTextComponents = {
+  block: {
+    normal: ({ children }: any) => <p style={{ marginBottom: '1.5rem', lineHeight: '1.9', color: '#1a1a1a', fontSize: '1.1rem' }}>{children}</p>,
+  },
+  marks: {
+    strong: ({ children }: any) => <strong style={{ fontWeight: 'bold' }}>{children}</strong>,
+    em: ({ children }: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
+    link: ({ value, children }: any) => <a href={value.href} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>{children}</a>,
+  },
+  types: {
+    image: ({ value }: any) => <div style={{ margin: '1.5rem 0' }}><img src={urlFor(value).url()} alt="Image" style={{ borderRadius: '0.75rem', width: '100%' }} /></div>,
+  },
+}
+
+async function getStory(slug: string) {
+  const allStories = await client.fetch(`
+    *[_type == "story"] {
+      _id,
+      title,
+      publishedAt,
+      coverImage,
+      storyContent,
+      categories,
+      slug,
+      likes,
+      audio,
+      video
+    }
+  `)
+  return allStories.find((s: any) => s.slug?.current === slug) || null
+}
+
 export default async function StoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const story = await getStory(slug)
@@ -145,7 +168,6 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
   const url = `https://timopazza.com/stories/${slug}`
   const title = story.title
 
-  // Determine video position
   const videoPosition = story.video?.position || 'bottom'
   const showVideoTop = videoPosition === 'top'
   const showVideoBottom = videoPosition === 'bottom'
@@ -153,7 +175,6 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
   return (
     <div style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 2rem 4rem 2rem' }}>
       <article>
-        {/* Header */}
         <header style={{ marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: '400', color: '#1a1a1a', lineHeight: '1.2', marginBottom: '1rem' }}>
             {story.title}
@@ -168,34 +189,28 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
           </div>
         </header>
 
-        {/* Cover Image */}
         {story.coverImage && (
           <div style={{ position: 'relative', height: '400px', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem', backgroundColor: '#f3f4f6' }}>
-            <Image src={urlFor(story.coverImage).url()} alt={story.title} fill style={{ objectFit: 'cover' }} priority />
+            <Image src={urlFor(story.coverImage).url()} alt={story.title} fill style={{ objectFit: 'cover' }} priority sizes="(max-width: 720px) 100vw, 720px" />
           </div>
         )}
 
-        {/* Audio Player */}
         {story.audio && story.audio.file && (
           <AudioPlayer audio={story.audio} />
         )}
 
-        {/* Video - Top */}
         {showVideoTop && story.video && story.video.url && (
           <VideoPlayer video={story.video} />
         )}
 
-        {/* Story Content */}
         <div style={{ fontSize: '1.1rem', lineHeight: '1.9', color: '#1a1a1a' }}>
           {story.storyContent && <PortableText value={story.storyContent} components={portableTextComponents} />}
         </div>
 
-        {/* Video - Bottom */}
         {showVideoBottom && story.video && story.video.url && (
           <VideoPlayer video={story.video} />
         )}
 
-        {/* Social Actions */}
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
             <LikeButton initialLikes={story.likes || 0} id={story._id} type="story" />
@@ -203,7 +218,6 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
 
-        {/* Comments */}
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
           <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
           <Comments id={story._id} title={story.title} url={url} />
