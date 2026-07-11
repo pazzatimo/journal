@@ -10,5 +10,8 @@
       "src": "/(.*)",
       "dest": "life-beyond-work/frontend/$1"
     }
-  ]
+  ],
+  "github": {
+    "silent": true
+  }
 }
