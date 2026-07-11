@@ -6,6 +6,18 @@ import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
 
+// Generate static params for all media items (optional but good for performance)
+export async function generateStaticParams() {
+  const mediaItems = await client.fetch(`
+    *[_type == "media"] {
+      "slug": slug.current
+    }
+  `)
+  return mediaItems.map((item: { slug: string }) => ({
+    slug: item.slug,
+  }))
+}
+
 async function getMediaItem(slug: string) {
   const allMedia = await client.fetch(`
     *[_type == "media"] {
@@ -56,8 +68,12 @@ function getSanityFileUrl(assetRef: string): string {
   return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
 }
 
-export default async function MediaDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export default async function MediaDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params // ✅ Must await params in Next.js 15+
   const item = await getMediaItem(slug)
 
   if (!item) {
