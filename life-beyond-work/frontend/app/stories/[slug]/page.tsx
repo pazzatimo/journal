@@ -1,4 +1,4 @@
-import { client, urlFor } from '@/lib/sanity'
+import { client, urlFor, getBaseUrl } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 import { PortableText } from '@portabletext/react'
@@ -8,21 +8,17 @@ import { ShareButtons } from '@/components/ShareButtons'
 
 // Helper function to get embed URL from YouTube/Vimeo
 function getEmbedUrl(url: string): string {
-  // YouTube
   const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/)
   if (youtubeMatch) {
     return `https://www.youtube.com/embed/${youtubeMatch[1]}`
   }
-  // Vimeo
   const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/)
   if (vimeoMatch) {
     return `https://player.vimeo.com/video/${vimeoMatch[1]}`
   }
-  // If it's already an embed URL, return as is
   if (url.includes('embed')) {
     return url
   }
-  // Default: return original URL
   return url
 }
 
@@ -30,12 +26,9 @@ function getEmbedUrl(url: string): string {
 function getSanityFileUrl(assetRef: string): string {
   if (!assetRef) return ''
   const ref = assetRef
-  // Sanity file assets: file-{id}-{extension}
   const id = ref.replace(/^file-/, '').replace(/-\w+$/, '')
   const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
   const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
-  // The extension is usually part of the asset, but we'll default to mp3
-  // We can try to detect the extension from the ref
   const extMatch = ref.match(/-([a-z0-9]+)$/)
   const ext = extMatch ? extMatch[1] : 'mp3'
   return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
@@ -45,7 +38,6 @@ function getSanityFileUrl(assetRef: string): string {
 function AudioPlayer({ audio }: { audio: any }) {
   if (!audio?.file) return null
 
-  // Get the audio URL from the file asset
   let audioUrl = ''
   if (audio.file.asset?._ref) {
     audioUrl = getSanityFileUrl(audio.file.asset._ref)
@@ -165,7 +157,8 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
     )
   }
 
-  const url = `https://timopazza.com/stories/${slug}`
+  const baseUrl = getBaseUrl()
+  const url = `${baseUrl}/stories/${slug}`
   const title = story.title
 
   const videoPosition = story.video?.position || 'bottom'

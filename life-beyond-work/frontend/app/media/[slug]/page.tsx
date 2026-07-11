@@ -1,4 +1,4 @@
-import { client, urlFor } from '@/lib/sanity'
+import { client, urlFor, getBaseUrl } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -64,7 +64,8 @@ export default async function MediaDetailPage({ params }: { params: Promise<{ sl
     notFound()
   }
 
-  const url = `https://timopazza.com/media/${slug}`
+  const baseUrl = getBaseUrl()
+  const url = `${baseUrl}/media/${slug}`
   const title = item.title
 
   let fileUrl = ''

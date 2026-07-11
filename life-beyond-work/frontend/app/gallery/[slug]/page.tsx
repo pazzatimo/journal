@@ -1,6 +1,6 @@
 'use client'
 
-import { client, urlFor } from '@/lib/sanity'
+import { client, urlFor, getBaseUrl } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -313,6 +313,8 @@ export default function GalleryDetailPage({ params }: { params: Promise<{ slug: 
   const [imageLikes, setImageLikes] = useState<Record<string, number>>({})
   const [imageIds, setImageIds] = useState<Record<string, string>>({})
 
+  const baseUrl = getBaseUrl()
+
   // Load gallery data
   useEffect(() => {
     let mounted = true
@@ -375,8 +377,6 @@ export default function GalleryDetailPage({ params }: { params: Promise<{ slug: 
   const handleLikeUpdate = (index: number, newLikes: number) => {
     setImageLikes(prev => ({ ...prev, [index]: newLikes }))
   }
-
-  const baseUrl = 'https://timopazza.com'
 
   if (loading) {
     return (

@@ -1,4 +1,4 @@
-import { client, urlFor } from '@/lib/sanity'
+import { client, urlFor, getBaseUrl } from '@/lib/sanity'
 import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
@@ -115,7 +115,7 @@ function VideoPlayer({ video }: { video: any }) {
 
 export default async function QuotesPage() {
   const quotes = await getQuotes()
-  const baseUrl = 'https://timopazza.com'
+  const baseUrl = getBaseUrl()
 
   return (
     <div className="container" style={{ padding: '2rem 0 4rem 0' }}>

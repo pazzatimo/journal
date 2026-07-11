@@ -1,4 +1,4 @@
-import { client, urlFor } from '@/lib/sanity'
+import { client, urlFor, getBaseUrl } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -113,6 +113,7 @@ export default async function Home() {
   const heroImage = siteSettings?.heroImage || null
   const heroTitle = siteSettings?.heroTitle || 'Thoughts, Stories & Moments Beyond Work'
   const heroSubtitle = siteSettings?.heroSubtitle || 'A personal journal by Timo Pazza — exploring life beyond the professional world.'
+  const baseUrl = getBaseUrl()
 
   const allPublications = [
     ...articles.map((a: Article) => ({ ...a, type: 'article', link: `/articles/${a.slug?.current}` })),
@@ -128,7 +129,7 @@ export default async function Home() {
   return (
     <div className="container" style={{ paddingBottom: '4rem' }}>
       
-      {/* ===== HERO SECTION - POLISHED ===== */}
+      {/* Hero Section */}
       <section className="hero-section">
         {heroImage ? (
           <div className="hero-background">

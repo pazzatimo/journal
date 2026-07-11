@@ -6,9 +6,10 @@ import story from './stories'
 import quote from './quotes'
 import book from './books'
 import gallery from './gallery'
-import galleryImage from './galleryImage' // ← Add this
+import galleryImage from './galleryImage'
+import media from './media' // ← Add this
 import { code } from './code'
-import siteSettings from './siteSettings'  // ← Add this line
+import siteSettings from './siteSettings'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   post,
@@ -18,6 +19,8 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   quote,
   book,
   gallery,
+  galleryImage,
+  media, // ← Add here
   code,
-  siteSettings,  // ← Add here
+  siteSettings,
 ]
