@@ -1,0 +1,110 @@
+import { defineType, defineField } from 'sanity'
+
+export default defineType({
+  name: 'quote',
+  title: 'Quotes',
+  type: 'document',
+  icon: () => '💬',
+  groups: [
+    { name: 'content', title: 'Content', default: true },
+    { name: 'media', title: 'Audio & Video' },
+    { name: 'seo', title: 'SEO' },
+  ],
+  fields: [
+    defineField({
+      name: 'quoteText',
+      title: 'Quote',
+      type: 'text',
+      group: 'content',
+      validation: (rule) => rule.required(),
+      rows: 3,
+    }),
+    defineField({
+      name: 'quoteAuthor',
+      title: 'Author',
+      type: 'string',
+      group: 'content',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'context',
+      title: 'Context',
+      type: 'text',
+      group: 'content',
+      rows: 2,
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      group: 'content',
+      of: [{ type: 'string' }],
+      options: { layout: 'tags' },
+    }),
+    defineField({
+      name: 'publishedAt',
+      title: 'Publish Date',
+      type: 'datetime',
+      group: 'content',
+      initialValue: () => new Date().toISOString(),
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'likes',
+      title: 'Likes',
+      type: 'number',
+      group: 'content',
+      initialValue: 0,
+    }),
+    defineField({
+      name: 'audio',
+      title: 'Audio Narration',
+      type: 'object',
+      group: 'media',
+      fields: [
+        defineField({ name: 'file', title: 'Audio File', type: 'file', options: { accept: 'audio/*' } }),
+        defineField({ name: 'title', title: 'Audio Title', type: 'string' }),
+        defineField({ name: 'transcript', title: 'Transcript', type: 'text', rows: 4 }),
+      ],
+    }),
+    defineField({
+      name: 'video',
+      title: 'Video',
+      type: 'object',
+      group: 'media',
+      fields: [
+        defineField({ name: 'url', title: 'Video URL', type: 'url' }),
+        defineField({ name: 'title', title: 'Video Title', type: 'string' }),
+        defineField({
+          name: 'position',
+          title: 'Video Position',
+          type: 'string',
+          options: { list: [{ title: 'Top of Quote', value: 'top' }, { title: 'Bottom of Quote', value: 'bottom' }] },
+          initialValue: 'bottom',
+        }),
+      ],
+    }),
+    defineField({
+      name: 'seoTitle',
+      title: 'SEO Title',
+      type: 'string',
+      group: 'seo',
+    }),
+    defineField({
+      name: 'seoDescription',
+      title: 'SEO Description',
+      type: 'text',
+      group: 'seo',
+      rows: 3,
+    }),
+    defineField({
+      name: 'ogImage',
+      title: 'Open Graph Image',
+      type: 'image',
+      group: 'seo',
+    }),
+  ],
+  preview: {
+    select: { title: 'quoteText', subtitle: 'quoteAuthor' },
+  },
+})
