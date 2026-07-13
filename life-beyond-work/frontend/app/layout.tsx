@@ -1,17 +1,22 @@
+'use client'
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { client, urlFor } from "@/lib/sanity";
+import { useState, useEffect } from "react";
 import "./globals.css";
 
-// Dynamic metadata based on site settings
+export const metadata: Metadata = {
+  title: "Life Beyond Work – A personal journal by Timo Pazza",
+  description: "Thoughts, stories, books, lessons, experiences and moments beyond the professional world.",
+};
+
 async function getSiteSettings() {
   try {
     return await client.fetch(`
       *[_type == "siteSettings"][0] {
-        logo,
-        heroTitle,
-        heroSubtitle
+        logo
       }
     `);
   } catch (error) {
@@ -20,69 +25,26 @@ async function getSiteSettings() {
   }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const siteSettings = await getSiteSettings();
-  
-  const title = siteSettings?.heroTitle || 'Life Beyond Work';
-  const description = siteSettings?.heroSubtitle || 'Thoughts, stories, books, lessons, experiences and moments beyond the professional world.';
-  
-  return {
-    title: {
-      default: `${title} – A personal journal by Timo Pazza`,
-      template: `%s | ${title} – A personal journal by Timo Pazza`,
-    },
-    description: description,
-    keywords: ['journal', 'personal blog', 'life beyond work', 'stories', 'articles', 'books', 'quotes', 'Timo Pazza'],
-    authors: [{ name: 'Timo Pazza' }],
-    creator: 'Timo Pazza',
-    publisher: 'Life Beyond Work',
-    robots: {
-      index: true,
-      follow: true,
-    },
-    openGraph: {
-      title: `${title} – A personal journal by Timo Pazza`,
-      description: description,
-      url: 'https://timopazza.com',
-      siteName: 'Life Beyond Work',
-      images: [
-        {
-          url: 'https://timopazza.com/og-image.jpg',
-          width: 1200,
-          height: 630,
-          alt: 'Life Beyond Work',
-        },
-      ],
-      locale: 'en_US',
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${title} – A personal journal by Timo Pazza`,
-      description: description,
-      images: ['https://timopazza.com/og-image.jpg'],
-    },
-    icons: {
-      icon: '/favicon.ico',
-      apple: '/apple-touch-icon.png',
-    },
-    metadataBase: new URL('https://timopazza.com'),
-  };
-}
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const siteSettings = await getSiteSettings();
+  const [siteSettings, setSiteSettings] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    getSiteSettings().then((data) => setSiteSettings(data));
+  }, []);
+
   const logoImage = siteSettings?.logo;
 
   return (
     <html lang="en">
       <body>
-        {/* Navbar - Logo only (no text) */}
+        {/* Navbar */}
         <nav className="top-nav">
+          {/* Logo */}
           <Link href="/" className="top-nav-brand" style={{ display: 'flex', alignItems: 'center' }}>
             {logoImage ? (
               <Image
@@ -105,14 +67,26 @@ export default async function RootLayout({
             )}
           </Link>
 
-          <div className="top-nav-links">
-            <Link href="/" className="nav-pill">Home</Link>
-            <Link href="/articles" className="nav-pill">Articles</Link>
-            <Link href="/stories" className="nav-pill">Stories</Link>
-            <Link href="/quotes" className="nav-pill">Quotes</Link>
-            <Link href="/books" className="nav-pill">Books</Link>
-            <Link href="/gallery" className="nav-pill">Gallery</Link>
-            <Link href="/media" className="nav-pill">Media</Link> {/* ← Add this */}
+          {/* Hamburger button (mobile) */}
+          <button
+            className="hamburger"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span className={`hamburger-line ${isMenuOpen ? 'open' : ''}`} />
+            <span className={`hamburger-line ${isMenuOpen ? 'open' : ''}`} />
+            <span className={`hamburger-line ${isMenuOpen ? 'open' : ''}`} />
+          </button>
+
+          {/* Navigation links */}
+          <div className={`top-nav-links ${isMenuOpen ? 'open' : ''}`}>
+            <Link href="/" className="nav-pill" onClick={() => setIsMenuOpen(false)}>Home</Link>
+            <Link href="/articles" className="nav-pill" onClick={() => setIsMenuOpen(false)}>Articles</Link>
+            <Link href="/stories" className="nav-pill" onClick={() => setIsMenuOpen(false)}>Stories</Link>
+            <Link href="/quotes" className="nav-pill" onClick={() => setIsMenuOpen(false)}>Quotes</Link>
+            <Link href="/books" className="nav-pill" onClick={() => setIsMenuOpen(false)}>Books</Link>
+            <Link href="/gallery" className="nav-pill" onClick={() => setIsMenuOpen(false)}>Gallery</Link>
+            <Link href="/media" className="nav-pill" onClick={() => setIsMenuOpen(false)}>Media</Link>
           </div>
         </nav>
 
@@ -121,7 +95,7 @@ export default async function RootLayout({
           {children}
         </main>
 
-        {/* Footer - Text only + Social Icons */}
+        {/* Footer */}
         <footer className="site-footer">
           <div className="footer-container">
             <div className="footer-social">
