@@ -1,6 +1,6 @@
 'use client'
 
-import { client, urlFor, getBaseUrl } from '@/lib/sanity'
+import { client, urlFor } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
@@ -43,7 +43,6 @@ function getCategoryLabel(category: string): string {
   return labels[category] || category
 }
 
-// Audio Player Component (inline in list)
 function AudioPlayer({ fileUrl, title }: { fileUrl: string; title: string }) {
   return (
     <audio controls style={{ width: '100%', height: '36px', marginTop: '0.5rem' }}>
@@ -53,7 +52,6 @@ function AudioPlayer({ fileUrl, title }: { fileUrl: string; title: string }) {
   )
 }
 
-// Helper to get Sanity file asset URL
 function getSanityFileUrl(assetRef: string): string {
   if (!assetRef) return ''
   const ref = assetRef
@@ -69,32 +67,48 @@ export default function MediaPage() {
   const [allMedia, setAllMedia] = useState<any[]>([])
   const [filteredMedia, setFilteredMedia] = useState<any[]>([])
   const [activeLanguage, setActiveLanguage] = useState<'all' | 'kiswahili' | 'english'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     getMedia().then((data) => {
       setAllMedia(data)
-      setFilteredMedia(data)
       setLoading(false)
     })
   }, [])
 
   useEffect(() => {
-    if (activeLanguage === 'all') {
-      setFilteredMedia(allMedia)
-    } else if (activeLanguage === 'kiswahili') {
-      setFilteredMedia(allMedia.filter((item) => item.tags?.includes('Kiswahili')))
+    let filtered = allMedia
+    if (activeLanguage === 'kiswahili') {
+      filtered = filtered.filter((item) => item.tags?.includes('Kiswahili'))
     } else if (activeLanguage === 'english') {
-      setFilteredMedia(allMedia.filter((item) => item.tags?.includes('English')))
+      filtered = filtered.filter((item) => item.tags?.includes('English'))
     }
-  }, [activeLanguage, allMedia])
+
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter((item) => {
+        const title = item.title?.toLowerCase() || ''
+        const description = item.description?.toLowerCase() || ''
+        const tags = (item.tags || []).join(' ').toLowerCase()
+        return title.includes(query) || description.includes(query) || tags.includes(query)
+      })
+    }
+
+    filtered = filtered.sort((a, b) => {
+      const titleA = a.title?.toLowerCase() || ''
+      const titleB = b.title?.toLowerCase() || ''
+      return titleA.localeCompare(titleB)
+    })
+
+    setFilteredMedia(filtered)
+  }, [activeLanguage, searchQuery, allMedia])
 
   const toggleLyrics = (id: string) => {
     setExpandedId(expandedId === id ? null : id)
   }
 
-  // Count items per language
   const kiswahiliCount = allMedia.filter((item) => item.tags?.includes('Kiswahili')).length
   const englishCount = allMedia.filter((item) => item.tags?.includes('English')).length
 
@@ -111,9 +125,61 @@ export default function MediaPage() {
       <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '0.5rem' }}>
         Media
       </h1>
-      <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-        Songs, audio, videos, and documents
-      </p>
+
+      {/* Quote */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <p style={{ color: '#4b5563', fontStyle: 'italic', fontSize: '1.05rem', lineHeight: '1.6' }}>
+          &quot;There&apos;s nothing like music. You know, God heals by music. Did you know that? Uh-huh. God heals by music.&quot;
+        </p>
+        <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+          — Rev. William Marrion Branham
+        </p>
+      </div>
+
+      {/* Search Bar */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <input
+          type="text"
+          placeholder="🔍 Search by title, description, or tag..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '0.7rem 1rem',
+            borderRadius: '0.5rem',
+            border: '1px solid #e5e7eb',
+            fontSize: '0.95rem',
+            outline: 'none',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
+            backgroundColor: '#ffffff',
+            color: '#1a1a1a',
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = '#1a1a1a'
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0,0,0,0.05)'
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = '#e5e7eb'
+            e.currentTarget.style.boxShadow = 'none'
+          }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#9ca3af',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              marginTop: '0.25rem',
+              textDecoration: 'underline',
+            }}
+          >
+            Clear search
+          </button>
+        )}
+      </div>
 
       {/* Language Filter Tabs */}
       <div style={{
@@ -174,9 +240,18 @@ export default function MediaPage() {
         </button>
       </div>
 
+      {filteredMedia.length > 0 && (
+        <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '1rem' }}>
+          Showing {filteredMedia.length} {filteredMedia.length === 1 ? 'item' : 'items'}
+          {searchQuery && ` matching "${searchQuery}"`}
+        </p>
+      )}
+
       {filteredMedia.length === 0 ? (
         <p style={{ color: '#9ca3af' }}>
-          {activeLanguage === 'all'
+          {searchQuery
+            ? `No media found matching "${searchQuery}". Try a different search or clear the filter.`
+            : activeLanguage === 'all'
             ? 'No media yet. Upload your first song, audio, video, or document in Sanity Studio!'
             : activeLanguage === 'kiswahili'
             ? 'No Kiswahili media yet. Add the "Kiswahili" tag to your media items.'
@@ -214,9 +289,7 @@ export default function MediaPage() {
                 }}
                 className="media-item"
               >
-                {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  {/* Thumbnail */}
                   {item.thumbnail ? (
                     <div style={{ position: 'relative', width: '60px', height: '60px', flexShrink: 0, borderRadius: '0.5rem', overflow: 'hidden' }}>
                       <Image
@@ -310,7 +383,6 @@ export default function MediaPage() {
                     )}
                   </div>
 
-                  {/* Actions */}
                   <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
                     {isAudio && fileUrl && (
                       <span style={{
@@ -342,14 +414,12 @@ export default function MediaPage() {
                   </div>
                 </div>
 
-                {/* Audio Player (for audio/song) */}
                 {isAudio && fileUrl && (
                   <div style={{ marginTop: '0.5rem' }}>
                     <AudioPlayer fileUrl={fileUrl} title={item.title} />
                   </div>
                 )}
 
-                {/* Lyrics (expandable) */}
                 {isExpanded && item.lyrics && (
                   <div style={{
                     marginTop: '0.5rem',
