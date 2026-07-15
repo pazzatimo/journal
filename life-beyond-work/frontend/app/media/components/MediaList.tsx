@@ -5,29 +5,9 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
-function getCategoryEmoji(category: string): string {
-  const emojis: Record<string, string> = {
-    song: '🎵',
-    audio: '🎧',
-    video: '🎬',
-    document: '📄',
-  }
-  return emojis[category] || '📁'
-}
-
-function getCategoryLabel(category: string): string {
-  const labels: Record<string, string> = {
-    song: 'Song',
-    audio: 'Audio',
-    video: 'Video',
-    document: 'Document',
-  }
-  return labels[category] || category
-}
-
 function AudioPlayer({ fileUrl }: { fileUrl: string }) {
   return (
-    <audio controls style={{ width: '100%', height: '32px', marginTop: '0.3rem' }}>
+    <audio controls style={{ width: '100%', height: '28px', marginTop: '0.2rem' }}>
       <source src={fileUrl} />
       Your browser does not support the audio element.
     </audio>
@@ -63,7 +43,7 @@ interface MediaListProps {
   subtitle?: string | null
   showLanguageTabs?: boolean
   emptyMessage: string
-  hideCategoryLabel?: boolean // ← New prop to hide category label
+  hideCategoryLabel?: boolean
 }
 
 export default function MediaList({ 
@@ -72,7 +52,7 @@ export default function MediaList({
   subtitle, 
   showLanguageTabs = true, 
   emptyMessage,
-  hideCategoryLabel = false // ← Default to false
+  hideCategoryLabel = false
 }: MediaListProps) {
   const router = useRouter()
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>(items)
@@ -308,7 +288,7 @@ export default function MediaList({
                 onClick={() => navigateToDetail(slug)}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
-                  {/* Thumbnail - smaller */}
+                  {/* Thumbnail - no icon, just the image or empty placeholder */}
                   {item.thumbnail ? (
                     <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0, borderRadius: '0.3rem', overflow: 'hidden' }}>
                       <Image
@@ -326,18 +306,11 @@ export default function MediaList({
                       flexShrink: 0,
                       borderRadius: '0.3rem',
                       backgroundColor: '#f3f4f6',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1rem',
-                    }}>
-                      {getCategoryEmoji(item.category)}
-                    </div>
+                    }} />
                   )}
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-                      {/* Language badges - small */}
                       {item.tags?.includes('Kiswahili') && (
                         <span style={{
                           fontSize: '0.45rem',
@@ -378,7 +351,6 @@ export default function MediaList({
                     </h3>
                   </div>
 
-                  {/* Lyrics button - smaller */}
                   {item.lyrics && (
                     <button
                       onClick={(e) => toggleLyrics(item._id, e)}
@@ -398,7 +370,6 @@ export default function MediaList({
                   )}
                 </div>
 
-                {/* Audio Player */}
                 {isAudio && fileUrl && (
                   <div 
                     style={{ marginTop: '0.2rem' }}
@@ -410,7 +381,6 @@ export default function MediaList({
                   </div>
                 )}
 
-                {/* Lyrics (expandable) */}
                 {isExpanded && item.lyrics && (
                   <div style={{
                     marginTop: '0.2rem',
