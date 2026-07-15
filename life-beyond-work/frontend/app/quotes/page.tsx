@@ -246,3 +246,4 @@ export default async function QuotesPage() {
     </div>
   )
 }
+export const revalidate = 60; // Revalidate every 60 seconds as fallback

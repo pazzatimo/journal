@@ -28,7 +28,9 @@ export default async function DocumentsPage() {
       title="Documents"
       subtitle={null}
       showLanguageTabs={false}
+      hideCategoryLabel={true} // ← Hide the category label
       emptyMessage="No documents yet. Upload your first document in Sanity Studio!"
     />
   )
 }
+export const revalidate = 60; // Revalidate every 60 seconds as fallback

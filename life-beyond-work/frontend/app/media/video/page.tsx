@@ -28,7 +28,9 @@ export default async function VideoPage() {
       title="Videos"
       subtitle={null}
       showLanguageTabs={false}
+      hideCategoryLabel={true} // ← Hide the category label
       emptyMessage="No videos yet. Upload your first video in Sanity Studio!"
     />
   )
 }
+export const revalidate = 60; // Revalidate every 60 seconds as fallback

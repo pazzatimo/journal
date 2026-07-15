@@ -104,3 +104,5 @@ export default function MediaPage() {
     </div>
   )
 }
+// ✅ Revalidate every 60 seconds
+export const revalidate = 60;

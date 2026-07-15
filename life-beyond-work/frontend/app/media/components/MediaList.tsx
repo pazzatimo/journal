@@ -27,7 +27,7 @@ function getCategoryLabel(category: string): string {
 
 function AudioPlayer({ fileUrl }: { fileUrl: string }) {
   return (
-    <audio controls style={{ width: '100%', height: '36px', marginTop: '0.5rem' }}>
+    <audio controls style={{ width: '100%', height: '32px', marginTop: '0.3rem' }}>
       <source src={fileUrl} />
       Your browser does not support the audio element.
     </audio>
@@ -63,6 +63,7 @@ interface MediaListProps {
   subtitle?: string | null
   showLanguageTabs?: boolean
   emptyMessage: string
+  hideCategoryLabel?: boolean // ← New prop to hide category label
 }
 
 export default function MediaList({ 
@@ -70,7 +71,8 @@ export default function MediaList({
   title, 
   subtitle, 
   showLanguageTabs = true, 
-  emptyMessage 
+  emptyMessage,
+  hideCategoryLabel = false // ← Default to false
 }: MediaListProps) {
   const router = useRouter()
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>(items)
@@ -109,7 +111,7 @@ export default function MediaList({
   }, [activeLanguage, searchQuery, items, showLanguageTabs])
 
   const toggleLyrics = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent navigation
+    e.stopPropagation()
     setExpandedId(expandedId === id ? null : id)
   }
 
@@ -277,7 +279,7 @@ export default function MediaList({
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '0.8rem',
+          gap: '0.6rem',
         }}>
           {filteredItems.map((item: any) => {
             const slug = item.slug?.current || item._id
@@ -295,8 +297,8 @@ export default function MediaList({
                 style={{
                   backgroundColor: '#ffffff',
                   border: '1px solid #e5e7eb',
-                  borderRadius: '0.6rem',
-                  padding: '0.7rem 0.8rem',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem 0.6rem',
                   transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
                   display: 'flex',
                   flexDirection: 'column',
@@ -305,29 +307,29 @@ export default function MediaList({
                 className="media-item"
                 onClick={() => navigateToDetail(slug)}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                  {/* Thumbnail */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                  {/* Thumbnail - smaller */}
                   {item.thumbnail ? (
-                    <div style={{ position: 'relative', width: '48px', height: '48px', flexShrink: 0, borderRadius: '0.4rem', overflow: 'hidden' }}>
+                    <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0, borderRadius: '0.3rem', overflow: 'hidden' }}>
                       <Image
                         src={urlFor(item.thumbnail).url()}
                         alt={item.title}
                         fill
                         style={{ objectFit: 'cover' }}
-                        sizes="48px"
+                        sizes="40px"
                       />
                     </div>
                   ) : (
                     <div style={{
-                      width: '48px',
-                      height: '48px',
+                      width: '40px',
+                      height: '40px',
                       flexShrink: 0,
-                      borderRadius: '0.4rem',
+                      borderRadius: '0.3rem',
                       backgroundColor: '#f3f4f6',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.2rem',
+                      fontSize: '1rem',
                     }}>
                       {getCategoryEmoji(item.category)}
                     </div>
@@ -335,22 +337,14 @@ export default function MediaList({
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-                      <span style={{
-                        fontSize: '0.55rem',
-                        fontWeight: '600',
-                        color: '#6b7280',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                      }}>
-                        {getCategoryEmoji(item.category)} {getCategoryLabel(item.category)}
-                      </span>
+                      {/* Language badges - small */}
                       {item.tags?.includes('Kiswahili') && (
                         <span style={{
-                          fontSize: '0.5rem',
+                          fontSize: '0.45rem',
                           fontWeight: '500',
                           color: '#ffffff',
                           background: '#1a1a1a',
-                          padding: '0.05rem 0.35rem',
+                          padding: '0.05rem 0.3rem',
                           borderRadius: '9999px',
                         }}>
                           🇹🇿
@@ -358,11 +352,11 @@ export default function MediaList({
                       )}
                       {item.tags?.includes('English') && (
                         <span style={{
-                          fontSize: '0.5rem',
+                          fontSize: '0.45rem',
                           fontWeight: '500',
                           color: '#ffffff',
                           background: '#2563eb',
-                          padding: '0.05rem 0.35rem',
+                          padding: '0.05rem 0.3rem',
                           borderRadius: '9999px',
                         }}>
                           🇬🇧
@@ -370,11 +364,11 @@ export default function MediaList({
                       )}
                     </div>
                     <h3 style={{
-                      fontSize: 'clamp(0.8rem, 1.5vw, 0.95rem)',
+                      fontSize: 'clamp(0.75rem, 1.2vw, 0.85rem)',
                       fontWeight: '500',
                       color: '#1a1a1a',
-                      margin: '0.1rem 0',
-                      lineHeight: '1.3',
+                      margin: '0.05rem 0',
+                      lineHeight: '1.2',
                       display: '-webkit-box',
                       WebkitLineClamp: 1,
                       WebkitBoxOrient: 'vertical',
@@ -383,58 +377,56 @@ export default function MediaList({
                       {item.title}
                     </h3>
                   </div>
-                </div>
 
-                {/* Audio Player (outside the clickable area to prevent navigation) */}
-                {isAudio && fileUrl && (
-                  <div 
-                    style={{ marginTop: '0.3rem' }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <audio controls style={{ width: '100%', height: '32px' }}>
-                      <source src={fileUrl} />
-                    </audio>
-                  </div>
-                )}
-
-                {/* Lyrics button and expandable lyrics */}
-                {item.lyrics && (
-                  <div onClick={(e) => e.stopPropagation()}>
+                  {/* Lyrics button - smaller */}
+                  {item.lyrics && (
                     <button
                       onClick={(e) => toggleLyrics(item._id, e)}
                       style={{
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: 'clamp(0.6rem, 1vw, 0.7rem)',
+                        fontSize: '0.55rem',
                         color: isExpanded ? '#2563eb' : '#9ca3af',
-                        padding: '0.2rem 0',
+                        padding: '0.05rem 0.15rem',
                         textDecoration: 'underline',
-                        textAlign: 'left',
-                        marginTop: '0.2rem',
+                        flexShrink: 0,
                       }}
                     >
-                      {isExpanded ? '📝 Hide Lyrics' : '📝 Show Lyrics'}
+                      {isExpanded ? '📝' : '📝'}
                     </button>
+                  )}
+                </div>
 
-                    {isExpanded && item.lyrics && (
-                      <div style={{
-                        marginTop: '0.3rem',
-                        padding: '0.5rem',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '0.4rem',
-                        border: '1px solid #e5e7eb',
-                        whiteSpace: 'pre-wrap',
-                        fontFamily: 'monospace',
-                        fontSize: 'clamp(0.65rem, 1.2vw, 0.8rem)',
-                        lineHeight: '1.5',
-                        maxHeight: '150px',
-                        overflowY: 'auto',
-                        color: '#1a1a1a',
-                      }}>
-                        {item.lyrics}
-                      </div>
-                    )}
+                {/* Audio Player */}
+                {isAudio && fileUrl && (
+                  <div 
+                    style={{ marginTop: '0.2rem' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <audio controls style={{ width: '100%', height: '28px' }}>
+                      <source src={fileUrl} />
+                    </audio>
+                  </div>
+                )}
+
+                {/* Lyrics (expandable) */}
+                {isExpanded && item.lyrics && (
+                  <div style={{
+                    marginTop: '0.2rem',
+                    padding: '0.3rem 0.4rem',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '0.3rem',
+                    border: '1px solid #e5e7eb',
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'monospace',
+                    fontSize: 'clamp(0.55rem, 1vw, 0.7rem)',
+                    lineHeight: '1.4',
+                    maxHeight: '120px',
+                    overflowY: 'auto',
+                    color: '#1a1a1a',
+                  }}>
+                    {item.lyrics}
                   </div>
                 )}
               </div>
@@ -446,10 +438,10 @@ export default function MediaList({
       <style>{`
         @media (max-width: 480px) {
           .media-item {
-            padding: 0.5rem 0.6rem !important;
+            padding: 0.35rem 0.4rem !important;
           }
           .media-item audio {
-            height: 28px !important;
+            height: 24px !important;
           }
         }
         .media-item:hover {

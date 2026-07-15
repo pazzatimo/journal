@@ -28,7 +28,9 @@ export default async function AudioPage() {
       title="Audio & Songs"
       subtitle="🎵 There's nothing like music. God heals by music. — Rev. William Marrion Branham"
       showLanguageTabs={true}
+      hideCategoryLabel={true} // ← Hide the category label
       emptyMessage="No audio or songs yet. Upload your first song or audio in Sanity Studio!"
     />
   )
 }
+export const revalidate = 60; // Revalidate every 60 seconds as fallback

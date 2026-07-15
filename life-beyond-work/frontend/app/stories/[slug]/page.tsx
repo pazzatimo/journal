@@ -219,3 +219,4 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
     </div>
   )
 }
+export const revalidate = 60; // Revalidate every 60 seconds as fallback

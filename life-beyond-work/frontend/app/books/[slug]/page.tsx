@@ -183,3 +183,4 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
     </div>
   )
 }
+export const revalidate = 60; // Revalidate every 60 seconds as fallback
