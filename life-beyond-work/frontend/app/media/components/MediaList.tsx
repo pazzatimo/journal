@@ -44,6 +44,7 @@ interface MediaListProps {
   showLanguageTabs?: boolean
   emptyMessage: string
   hideCategoryLabel?: boolean
+  hideThumbnail?: boolean // ← New prop to hide thumbnail
 }
 
 export default function MediaList({ 
@@ -52,7 +53,8 @@ export default function MediaList({
   subtitle, 
   showLanguageTabs = true, 
   emptyMessage,
-  hideCategoryLabel = false
+  hideCategoryLabel = false,
+  hideThumbnail = false // ← default false
 }: MediaListProps) {
   const router = useRouter()
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>(items)
@@ -288,25 +290,27 @@ export default function MediaList({
                 onClick={() => navigateToDetail(slug)}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
-                  {/* Thumbnail - no icon, just the image or empty placeholder */}
-                  {item.thumbnail ? (
-                    <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0, borderRadius: '0.3rem', overflow: 'hidden' }}>
-                      <Image
-                        src={urlFor(item.thumbnail).url()}
-                        alt={item.title}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        sizes="40px"
-                      />
-                    </div>
-                  ) : (
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      flexShrink: 0,
-                      borderRadius: '0.3rem',
-                      backgroundColor: '#f3f4f6',
-                    }} />
+                  {/* Thumbnail: only show if hideThumbnail is false */}
+                  {!hideThumbnail && (
+                    item.thumbnail ? (
+                      <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0, borderRadius: '0.3rem', overflow: 'hidden' }}>
+                        <Image
+                          src={urlFor(item.thumbnail).url()}
+                          alt={item.title}
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          sizes="40px"
+                        />
+                      </div>
+                    ) : (
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        flexShrink: 0,
+                        borderRadius: '0.3rem',
+                        backgroundColor: '#f3f4f6',
+                      }} />
+                    )
                   )}
 
                   <div style={{ flex: 1, minWidth: 0 }}>
