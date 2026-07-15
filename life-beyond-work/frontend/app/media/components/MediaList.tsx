@@ -115,32 +115,32 @@ export default function MediaList({
   const englishCount = items.filter((item) => item.tags?.includes('English')).length
 
   return (
-    <div className="container" style={{ padding: '2rem 0 4rem 0' }}>
+    <div className="container" style={{ padding: '1.5rem 1rem 4rem 1rem' }}>
       {/* Back button */}
       <Link href="/media" style={{
         display: 'inline-block',
-        marginBottom: '1.5rem',
-        fontSize: '0.875rem',
+        marginBottom: '1rem',
+        fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
         color: '#2563eb',
         textDecoration: 'none',
       }}>
         ← Back to Media
       </Link>
 
-      <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '0.5rem' }}>
+      <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: '300', color: '#1a1a1a', marginBottom: '0.5rem' }}>
         {title}
       </h1>
 
       {subtitle && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <p style={{ color: '#4b5563', fontStyle: 'italic', fontSize: '1.05rem', lineHeight: '1.6' }}>
+        <div style={{ marginBottom: '1rem' }}>
+          <p style={{ color: '#4b5563', fontStyle: 'italic', fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', lineHeight: '1.6' }}>
             {subtitle}
           </p>
         </div>
       )}
 
       {/* Search Bar */}
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1rem' }}>
         <input
           type="text"
           placeholder="🔍 Search by title, description, or tag..."
@@ -148,10 +148,10 @@ export default function MediaList({
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
             width: '100%',
-            padding: '0.7rem 1rem',
+            padding: '0.6rem 0.8rem',
             borderRadius: '0.5rem',
             border: '1px solid #e5e7eb',
-            fontSize: '0.95rem',
+            fontSize: 'clamp(0.85rem, 1.5vw, 0.95rem)',
             outline: 'none',
             transition: 'border-color 0.2s, box-shadow 0.2s',
             backgroundColor: '#ffffff',
@@ -174,7 +174,7 @@ export default function MediaList({
               border: 'none',
               color: '#9ca3af',
               cursor: 'pointer',
-              fontSize: '0.8rem',
+              fontSize: '0.75rem',
               marginTop: '0.25rem',
               textDecoration: 'underline',
             }}
@@ -184,26 +184,26 @@ export default function MediaList({
         )}
       </div>
 
-      {/* Language Filter Tabs (only for Audio page) */}
+      {/* Language Filter Tabs */}
       {showLanguageTabs && (
         <div style={{
           display: 'flex',
-          gap: '0.5rem',
-          marginBottom: '2rem',
+          gap: '0.4rem',
+          marginBottom: '1.5rem',
           borderBottom: '1px solid #e5e7eb',
-          paddingBottom: '0.75rem',
+          paddingBottom: '0.6rem',
           flexWrap: 'wrap',
         }}>
           <button
             onClick={() => setActiveLanguage('all')}
             style={{
-              padding: '0.4rem 1.2rem',
+              padding: '0.3rem 0.8rem',
               borderRadius: '9999px',
               border: 'none',
               background: activeLanguage === 'all' ? '#1a1a1a' : '#f3f4f6',
               color: activeLanguage === 'all' ? '#ffffff' : '#4b5563',
               cursor: 'pointer',
-              fontSize: '0.875rem',
+              fontSize: 'clamp(0.7rem, 1.5vw, 0.875rem)',
               fontWeight: '500',
               transition: 'all 0.2s ease',
             }}
@@ -213,13 +213,13 @@ export default function MediaList({
           <button
             onClick={() => setActiveLanguage('kiswahili')}
             style={{
-              padding: '0.4rem 1.2rem',
+              padding: '0.3rem 0.8rem',
               borderRadius: '9999px',
               border: 'none',
               background: activeLanguage === 'kiswahili' ? '#1a1a1a' : '#f3f4f6',
               color: activeLanguage === 'kiswahili' ? '#ffffff' : '#4b5563',
               cursor: 'pointer',
-              fontSize: '0.875rem',
+              fontSize: 'clamp(0.7rem, 1.5vw, 0.875rem)',
               fontWeight: '500',
               transition: 'all 0.2s ease',
             }}
@@ -229,13 +229,13 @@ export default function MediaList({
           <button
             onClick={() => setActiveLanguage('english')}
             style={{
-              padding: '0.4rem 1.2rem',
+              padding: '0.3rem 0.8rem',
               borderRadius: '9999px',
               border: 'none',
               background: activeLanguage === 'english' ? '#1a1a1a' : '#f3f4f6',
               color: activeLanguage === 'english' ? '#ffffff' : '#4b5563',
               cursor: 'pointer',
-              fontSize: '0.875rem',
+              fontSize: 'clamp(0.7rem, 1.5vw, 0.875rem)',
               fontWeight: '500',
               transition: 'all 0.2s ease',
             }}
@@ -246,7 +246,7 @@ export default function MediaList({
       )}
 
       {filteredItems.length > 0 && (
-        <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '1rem' }}>
+        <p style={{ fontSize: 'clamp(0.7rem, 1.2vw, 0.8rem)', color: '#9ca3af', marginBottom: '0.8rem' }}>
           Showing {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
           {searchQuery && ` matching "${searchQuery}"`}
         </p>
@@ -262,7 +262,7 @@ export default function MediaList({
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '1rem',
+          gap: '0.8rem',
         }}>
           {filteredItems.map((item: any) => {
             const slug = item.slug?.current || item._id
@@ -280,45 +280,46 @@ export default function MediaList({
                 style={{
                   backgroundColor: '#ffffff',
                   border: '1px solid #e5e7eb',
-                  borderRadius: '0.75rem',
-                  padding: '1rem',
+                  borderRadius: '0.6rem',
+                  padding: '0.7rem 0.8rem',
                   transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
                 className="media-item"
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  {/* Thumbnail */}
                   {item.thumbnail ? (
-                    <div style={{ position: 'relative', width: '60px', height: '60px', flexShrink: 0, borderRadius: '0.5rem', overflow: 'hidden' }}>
+                    <div style={{ position: 'relative', width: '48px', height: '48px', flexShrink: 0, borderRadius: '0.4rem', overflow: 'hidden' }}>
                       <Image
                         src={urlFor(item.thumbnail).url()}
                         alt={item.title}
                         fill
                         style={{ objectFit: 'cover' }}
-                        sizes="60px"
+                        sizes="48px"
                       />
                     </div>
                   ) : (
                     <div style={{
-                      width: '60px',
-                      height: '60px',
+                      width: '48px',
+                      height: '48px',
                       flexShrink: 0,
-                      borderRadius: '0.5rem',
+                      borderRadius: '0.4rem',
                       backgroundColor: '#f3f4f6',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.5rem',
+                      fontSize: '1.2rem',
                     }}>
                       {getCategoryEmoji(item.category)}
                     </div>
                   )}
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
                       <span style={{
-                        fontSize: '0.6rem',
+                        fontSize: '0.55rem',
                         fontWeight: '600',
                         color: '#6b7280',
                         textTransform: 'uppercase',
@@ -328,32 +329,32 @@ export default function MediaList({
                       </span>
                       {item.tags?.includes('Kiswahili') && (
                         <span style={{
-                          fontSize: '0.6rem',
+                          fontSize: '0.5rem',
                           fontWeight: '500',
                           color: '#ffffff',
                           background: '#1a1a1a',
-                          padding: '0.1rem 0.5rem',
+                          padding: '0.05rem 0.35rem',
                           borderRadius: '9999px',
                         }}>
-                          🇹🇿 Kiswahili
+                          🇹🇿
                         </span>
                       )}
                       {item.tags?.includes('English') && (
                         <span style={{
-                          fontSize: '0.6rem',
+                          fontSize: '0.5rem',
                           fontWeight: '500',
                           color: '#ffffff',
                           background: '#2563eb',
-                          padding: '0.1rem 0.5rem',
+                          padding: '0.05rem 0.35rem',
                           borderRadius: '9999px',
                         }}>
-                          🇬🇧 English
+                          🇬🇧
                         </span>
                       )}
                     </div>
                     <Link href={`/media/${slug}`} style={{ textDecoration: 'none' }}>
                       <h3 style={{
-                        fontSize: '0.95rem',
+                        fontSize: 'clamp(0.8rem, 1.5vw, 0.95rem)',
                         fontWeight: '500',
                         color: '#1a1a1a',
                         margin: '0.1rem 0',
@@ -367,27 +368,15 @@ export default function MediaList({
                         {item.title}
                       </h3>
                     </Link>
-                    {item.description && (
-                      <p style={{
-                        fontSize: '0.8rem',
-                        color: '#4b5563',
-                        margin: '0.1rem 0',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 1,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}>
-                        {item.description}
-                      </p>
-                    )}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '0.15rem', flexShrink: 0 }}>
                     {isAudio && fileUrl && (
                       <span style={{
-                        fontSize: '0.7rem',
+                        fontSize: '0.6rem',
                         background: '#f3f4f6',
-                        padding: '0.15rem 0.5rem',
+                        padding: '0.05rem 0.35rem',
                         borderRadius: '9999px',
                         color: '#4b5563',
                       }}>
@@ -401,36 +390,40 @@ export default function MediaList({
                           background: 'none',
                           border: 'none',
                           cursor: 'pointer',
-                          fontSize: '0.7rem',
+                          fontSize: '0.6rem',
                           color: isExpanded ? '#2563eb' : '#9ca3af',
-                          padding: '0.1rem 0.3rem',
+                          padding: '0.05rem 0.15rem',
                           textDecoration: 'underline',
                         }}
                       >
-                        {isExpanded ? '📝 Hide' : '📝 Lyrics'}
+                        {isExpanded ? '📝' : '📝'}
                       </button>
                     )}
                   </div>
                 </div>
 
+                {/* Audio Player */}
                 {isAudio && fileUrl && (
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <AudioPlayer fileUrl={fileUrl} />
+                  <div style={{ marginTop: '0.3rem' }}>
+                    <audio controls style={{ width: '100%', height: '32px' }}>
+                      <source src={fileUrl} />
+                    </audio>
                   </div>
                 )}
 
+                {/* Lyrics (expandable) */}
                 {isExpanded && item.lyrics && (
                   <div style={{
-                    marginTop: '0.5rem',
-                    padding: '0.75rem',
+                    marginTop: '0.4rem',
+                    padding: '0.5rem',
                     backgroundColor: '#f9fafb',
-                    borderRadius: '0.5rem',
+                    borderRadius: '0.4rem',
                     border: '1px solid #e5e7eb',
                     whiteSpace: 'pre-wrap',
                     fontFamily: 'monospace',
-                    fontSize: '0.8rem',
-                    lineHeight: '1.6',
-                    maxHeight: '200px',
+                    fontSize: 'clamp(0.65rem, 1.2vw, 0.8rem)',
+                    lineHeight: '1.5',
+                    maxHeight: '150px',
                     overflowY: 'auto',
                     color: '#1a1a1a',
                   }}>
@@ -444,6 +437,18 @@ export default function MediaList({
       )}
 
       <style>{`
+        @media (max-width: 480px) {
+          .media-item {
+            padding: 0.5rem 0.6rem !important;
+          }
+          .media-item .thumbnail {
+            width: 36px !important;
+            height: 36px !important;
+          }
+          .media-item audio {
+            height: 28px !important;
+          }
+        }
         .media-item:hover {
           box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
           border-color: #d1d5db !important;
