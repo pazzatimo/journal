@@ -2,7 +2,7 @@
 
 import { urlFor } from '@/lib/sanity'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 function getCategoryEmoji(category: string): string {
@@ -72,6 +72,7 @@ export default function MediaList({
   showLanguageTabs = true, 
   emptyMessage 
 }: MediaListProps) {
+  const router = useRouter()
   const [filteredItems, setFilteredItems] = useState<MediaItem[]>(items)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeLanguage, setActiveLanguage] = useState<'all' | 'kiswahili' | 'english'>('all')
@@ -107,8 +108,15 @@ export default function MediaList({
     setFilteredItems(filtered)
   }, [activeLanguage, searchQuery, items, showLanguageTabs])
 
-  const toggleLyrics = (id: string) => {
+  const toggleLyrics = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent navigation
     setExpandedId(expandedId === id ? null : id)
+  }
+
+  const navigateToDetail = (slug: string) => {
+    if (slug) {
+      router.push(`/media/${slug}`)
+    }
   }
 
   const kiswahiliCount = items.filter((item) => item.tags?.includes('Kiswahili')).length
@@ -117,15 +125,22 @@ export default function MediaList({
   return (
     <div className="container" style={{ padding: '1.5rem 1rem 4rem 1rem' }}>
       {/* Back button */}
-      <Link href="/media" style={{
-        display: 'inline-block',
-        marginBottom: '1rem',
-        fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
-        color: '#2563eb',
-        textDecoration: 'none',
-      }}>
+      <button
+        onClick={() => router.push('/media')}
+        style={{
+          display: 'inline-block',
+          marginBottom: '1rem',
+          fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
+          color: '#2563eb',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textDecoration: 'underline',
+          padding: 0,
+        }}
+      >
         ← Back to Media
-      </Link>
+      </button>
 
       <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: '300', color: '#1a1a1a', marginBottom: '0.5rem' }}>
         {title}
@@ -285,8 +300,10 @@ export default function MediaList({
                   transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
                   display: 'flex',
                   flexDirection: 'column',
+                  cursor: 'pointer',
                 }}
                 className="media-item"
+                onClick={() => navigateToDetail(slug)}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                   {/* Thumbnail */}
@@ -352,82 +369,72 @@ export default function MediaList({
                         </span>
                       )}
                     </div>
-                    <Link href={`/media/${slug}`} style={{ textDecoration: 'none' }}>
-                      <h3 style={{
-                        fontSize: 'clamp(0.8rem, 1.5vw, 0.95rem)',
-                        fontWeight: '500',
-                        color: '#1a1a1a',
-                        margin: '0.1rem 0',
-                        lineHeight: '1.3',
-                        transition: 'color 0.2s',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 1,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}>
-                        {item.title}
-                      </h3>
-                    </Link>
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{ display: 'flex', gap: '0.15rem', flexShrink: 0 }}>
-                    {isAudio && fileUrl && (
-                      <span style={{
-                        fontSize: '0.6rem',
-                        background: '#f3f4f6',
-                        padding: '0.05rem 0.35rem',
-                        borderRadius: '9999px',
-                        color: '#4b5563',
-                      }}>
-                        🎵
-                      </span>
-                    )}
-                    {item.lyrics && (
-                      <button
-                        onClick={() => toggleLyrics(item._id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '0.6rem',
-                          color: isExpanded ? '#2563eb' : '#9ca3af',
-                          padding: '0.05rem 0.15rem',
-                          textDecoration: 'underline',
-                        }}
-                      >
-                        {isExpanded ? '📝' : '📝'}
-                      </button>
-                    )}
+                    <h3 style={{
+                      fontSize: 'clamp(0.8rem, 1.5vw, 0.95rem)',
+                      fontWeight: '500',
+                      color: '#1a1a1a',
+                      margin: '0.1rem 0',
+                      lineHeight: '1.3',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 1,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}>
+                      {item.title}
+                    </h3>
                   </div>
                 </div>
 
-                {/* Audio Player */}
+                {/* Audio Player (outside the clickable area to prevent navigation) */}
                 {isAudio && fileUrl && (
-                  <div style={{ marginTop: '0.3rem' }}>
+                  <div 
+                    style={{ marginTop: '0.3rem' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <audio controls style={{ width: '100%', height: '32px' }}>
                       <source src={fileUrl} />
                     </audio>
                   </div>
                 )}
 
-                {/* Lyrics (expandable) */}
-                {isExpanded && item.lyrics && (
-                  <div style={{
-                    marginTop: '0.4rem',
-                    padding: '0.5rem',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '0.4rem',
-                    border: '1px solid #e5e7eb',
-                    whiteSpace: 'pre-wrap',
-                    fontFamily: 'monospace',
-                    fontSize: 'clamp(0.65rem, 1.2vw, 0.8rem)',
-                    lineHeight: '1.5',
-                    maxHeight: '150px',
-                    overflowY: 'auto',
-                    color: '#1a1a1a',
-                  }}>
-                    {item.lyrics}
+                {/* Lyrics button and expandable lyrics */}
+                {item.lyrics && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => toggleLyrics(item._id, e)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 'clamp(0.6rem, 1vw, 0.7rem)',
+                        color: isExpanded ? '#2563eb' : '#9ca3af',
+                        padding: '0.2rem 0',
+                        textDecoration: 'underline',
+                        textAlign: 'left',
+                        marginTop: '0.2rem',
+                      }}
+                    >
+                      {isExpanded ? '📝 Hide Lyrics' : '📝 Show Lyrics'}
+                    </button>
+
+                    {isExpanded && item.lyrics && (
+                      <div style={{
+                        marginTop: '0.3rem',
+                        padding: '0.5rem',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '0.4rem',
+                        border: '1px solid #e5e7eb',
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: 'monospace',
+                        fontSize: 'clamp(0.65rem, 1.2vw, 0.8rem)',
+                        lineHeight: '1.5',
+                        maxHeight: '150px',
+                        overflowY: 'auto',
+                        color: '#1a1a1a',
+                      }}>
+                        {item.lyrics}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -440,10 +447,6 @@ export default function MediaList({
         @media (max-width: 480px) {
           .media-item {
             padding: 0.5rem 0.6rem !important;
-          }
-          .media-item .thumbnail {
-            width: 36px !important;
-            height: 36px !important;
           }
           .media-item audio {
             height: 28px !important;
