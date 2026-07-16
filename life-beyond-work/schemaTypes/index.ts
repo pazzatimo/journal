@@ -10,6 +10,7 @@ import galleryImage from './galleryImage'
 import media from './media'
 import { code } from './code'
 import siteSettings from './siteSettings'
+import sidebarLinks from './sidebarLinks'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   post,
@@ -23,4 +24,5 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   media,
   code,
   siteSettings,
+  sidebarLinks,
 ]

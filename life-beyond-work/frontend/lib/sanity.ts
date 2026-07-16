@@ -29,3 +29,18 @@ export function getBaseUrl(): string {
   }
   return 'https://timopazza.com'
 }
+// ✅ NEW: Fetch sidebar links from Sanity
+export async function getSidebarLinks() {
+  try {
+    return await client.fetch(`
+      *[_type == "sidebarLinks"] | order(sectionOrder asc) {
+        sectionTitle,
+        links
+      }
+    `)
+  } catch (error) {
+    console.error('Failed to fetch sidebar links:', error)
+    return []
+
+  }
+}
