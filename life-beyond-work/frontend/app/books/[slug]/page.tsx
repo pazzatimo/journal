@@ -9,7 +9,7 @@ import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
 import { useEffect, useState } from 'react'
 
-// Portable Text components for rendering rich text with proper paragraph breaks
+// Portable Text components for rendering rich text
 const portableTextComponents = {
   block: {
     normal: ({ children }: any) => <p style={{ marginBottom: '1.5rem', lineHeight: '1.9', color: '#1a1a1a', fontSize: '1.1rem' }}>{children}</p>,
@@ -94,7 +94,8 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
     )
   }
 
-  const url = `https://timopazza.com/books/${slug}`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://timopazza.com'
+  const url = `${baseUrl}/books/${slug}`
   const title = book.title
 
   return (
@@ -135,16 +136,12 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
           </div>
         </div>
 
-        {/* Recommendation - Now using PortableText for proper paragraph breaks */}
+        {/* Recommendation */}
         {book.recommendation && (
           <div style={{ backgroundColor: '#f9fafb', padding: '1.5rem', borderRadius: '0.75rem', marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1a1a1a', marginBottom: '0.5rem' }}>Why I recommend this book</h2>
-            {/* Render recommendation as PortableText with proper paragraph breaks */}
             <div style={{ fontSize: '1rem', lineHeight: '1.8', color: '#1a1a1a' }}>
-              <PortableText
-                value={book.recommendation}
-                components={portableTextComponents}
-              />
+              <PortableText value={book.recommendation} components={portableTextComponents} />
             </div>
           </div>
         )}
@@ -183,4 +180,5 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
     </div>
   )
 }
-export const revalidate = 60; // Revalidate every 60 seconds as fallback
+
+// ❌ REMOVED: export const revalidate = 60; (not allowed in Client Components)
