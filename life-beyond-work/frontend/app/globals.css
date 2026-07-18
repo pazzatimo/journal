@@ -853,3 +853,123 @@ h1, h2, h3, h4, h5, h6 {
     display: none;
   }
 }
+/* ============================================
+   SIDEBAR - DARK THEME WITH BLUE TITLES
+   ============================================ */
+
+.sidebar-inner {
+  background: #1a1a1a;
+  border: 1px solid #2d2d2d;
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.2s ease;
+}
+
+.sidebar-inner:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Sections within the sidebar */
+.sidebar-section + .sidebar-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #2d2d2d;
+}
+
+/* ===== SECTION TITLE ===== */
+.sidebar-title {
+  font-size: 0.75rem;
+  font-weight: 700;                   /* ← BOLD */
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #3b82f6;                     /* ← PURE BLUE */
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+/* ===== LINK LABEL ===== */
+.sidebar-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  color: #ffffff;                     /* ← PURE WHITE */
+  text-decoration: none;
+  transition: all 0.15s ease;
+  font-weight: 400;
+  border: 1px solid transparent;
+}
+
+.sidebar-link:hover {
+  background: #2d2d2d;
+  color: #ffffff;
+  border-color: #3b82f6;              /* Blue border on hover */
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-link:active {
+  transform: scale(0.98);
+}
+
+.sidebar-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.sidebar-link:hover .sidebar-icon {
+  opacity: 1;
+}
+
+/* Right Sidebar - matching dark theme */
+.sidebar-right .sidebar-inner {
+  background: #1a1a1a;
+  border-color: #2d2d2d;
+}
+
+.sidebar-right .sidebar-link {
+  color: #ffffff;
+}
+
+.sidebar-right .sidebar-link:hover {
+  background: #2d2d2d;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.sidebar-right .sidebar-title {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+/* Scrollbar for sidebar (if content overflows) */
+.sidebar-inner::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-inner::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.sidebar-inner::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 9999px;
+}
+
+.sidebar-inner::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
