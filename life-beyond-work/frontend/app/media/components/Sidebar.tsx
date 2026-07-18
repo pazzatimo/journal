@@ -49,7 +49,6 @@ export function Sidebar({ sections }: SidebarProps) {
       {/* Sidebar */}
       <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-inner">
-          {/* Close button */}
           <button
             className="sidebar-close"
             onClick={() => setIsOpen(false)}
