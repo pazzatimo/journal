@@ -1,6 +1,7 @@
-import { client, urlFor } from '@/lib/sanity'
+import { client, urlFor, getSidebarLinks } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
+import { MobileSidebar } from '@/components/MobileSidebar'
 
 async function getArticles() {
   return await client.fetch(`
@@ -17,12 +18,16 @@ async function getArticles() {
 
 export default async function ArticlesPage() {
   const articles = await getArticles()
+  const sidebarSections = await getSidebarLinks()
 
   return (
     <div className="container" style={{ padding: '2rem 0 4rem 0' }}>
       <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '2rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
         All Articles
       </h1>
+
+      {/* Mobile Sidebar – appears after header on mobile */}
+      <MobileSidebar sections={sidebarSections} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {articles.length === 0 ? (

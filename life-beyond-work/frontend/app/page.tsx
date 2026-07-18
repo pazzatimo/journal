@@ -1,6 +1,7 @@
-import { client, urlFor } from '@/lib/sanity'
+import { client, urlFor, getSidebarLinks } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
+import { MobileSidebar } from '@/components/MobileSidebar'
 
 // Define types
 interface Article {
@@ -106,6 +107,7 @@ async function getContent() {
 export default async function Home() {
   const siteSettings = await getSiteSettings()
   const { articles, stories, quotes, books } = await getContent()
+  const sidebarSections = await getSidebarLinks()
 
   const featuredArticle = articles[0]
   const remainingArticles = articles.slice(1)
@@ -159,6 +161,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Mobile Sidebar – appears below hero on mobile */}
+      <MobileSidebar sections={sidebarSections} />
 
       {/* Featured Publications Grid */}
       <section style={{ marginBottom: '3rem' }}>
