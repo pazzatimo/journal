@@ -32,12 +32,11 @@ export function Sidebar({ sections }: SidebarProps) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // If no sections, don't render anything
   if (!sections || sections.length === 0) {
     return null
   }
 
-  // On desktop, render the sticky sidebar
+  // Desktop
   if (!isMobile) {
     return (
       <aside className="sidebar">
@@ -67,10 +66,9 @@ export function Sidebar({ sections }: SidebarProps) {
     )
   }
 
-  // On mobile, render the toggle and slide-in sidebar
+  // Mobile
   return (
     <>
-      {/* Toggle Button */}
       <button
         className="sidebar-toggle"
         onClick={() => setIsOpen(true)}
@@ -79,12 +77,10 @@ export function Sidebar({ sections }: SidebarProps) {
         ☰
       </button>
 
-      {/* Overlay */}
       {isOpen && (
         <div className="sidebar-overlay" onClick={() => setIsOpen(false)} />
       )}
 
-      {/* Slide-in Sidebar */}
       <aside className={`sidebar-mobile ${isOpen ? 'sidebar-mobile-open' : ''}`}>
         <div className="sidebar-mobile-inner">
           <button
