@@ -1088,3 +1088,112 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar-close {
   display: none;
 }
+/* ============================================
+   MOBILE SIDEBAR TOGGLE & SLIDE-IN
+   ============================================ */
+
+/* Toggle button */
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 76px;
+  left: 1rem;
+  z-index: 1000;
+  background: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid #2d2d2d;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-toggle:hover {
+  background: #2d2d2d;
+}
+
+/* Overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Sidebar itself */
+.sidebar {
+  position: sticky;
+  top: 80px;
+  align-self: flex-start;
+  width: 220px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .sidebar-toggle {
+    display: block; /* Show toggle on mobile */
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 80vw;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+
+  .sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close {
+    display: block;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: auto;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .sidebar-close:hover {
+    color: #9ca3af;
+  }
+
+  .sidebar-inner {
+    background: #1a1a1a;
+    border-radius: 0.75rem;
+    padding: 1.5rem 1.25rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .sidebar-right {
+    display: none;
+  }
+}
+
+/* Hide close button on desktop */
+.sidebar-close {
+  display: none;
+}

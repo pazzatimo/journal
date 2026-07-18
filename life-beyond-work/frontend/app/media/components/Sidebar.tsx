@@ -22,13 +22,14 @@ interface SidebarProps {
 export function Sidebar({ sections }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false)
 
+  // If no sections, don't render anything
   if (!sections || sections.length === 0) {
     return null
   }
 
   return (
     <>
-      {/* Mobile Toggle Button */}
+      {/* Mobile Toggle Button – always visible on mobile if sections exist */}
       <button
         className="sidebar-toggle"
         onClick={() => setIsOpen(true)}
@@ -48,7 +49,7 @@ export function Sidebar({ sections }: SidebarProps) {
       {/* Sidebar */}
       <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-inner">
-          {/* Close button (mobile) */}
+          {/* Close button */}
           <button
             className="sidebar-close"
             onClick={() => setIsOpen(false)}
