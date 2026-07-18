@@ -20,7 +20,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({ sections }: SidebarProps) {
-  const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -36,88 +35,54 @@ export function Sidebar({ sections }: SidebarProps) {
     return null
   }
 
-  // Desktop
-  if (!isMobile) {
-    return (
-      <aside className="sidebar">
-        <div className="sidebar-inner">
-          {sections.map((section, idx) => (
-            <div key={idx} className="sidebar-section">
-              <h3 className="sidebar-title">{section.sectionTitle}</h3>
-              <ul className="sidebar-links">
-                {section.links.map((link, index) => (
-                  <li key={index}>
-                    <a
-                      href={link.url}
-                      target={link.external ? '_blank' : '_self'}
-                      rel={link.external ? 'noopener noreferrer' : ''}
-                      className="sidebar-link"
-                    >
-                      {link.icon && <span className="sidebar-icon">{link.icon}</span>}
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </aside>
-    )
+  if (isMobile) {
+    return null
   }
 
-  // Mobile
   return (
-    <>
-      <button
-        className="sidebar-toggle"
-        onClick={() => setIsOpen(true)}
-        aria-label="Open sidebar"
-      >
-        ☰
-      </button>
-
-      {isOpen && (
-        <div className="sidebar-overlay" onClick={() => setIsOpen(false)} />
-      )}
-
-      <aside className={`sidebar-mobile ${isOpen ? 'sidebar-mobile-open' : ''}`}>
-        <div className="sidebar-mobile-inner">
-          <button
-            className="sidebar-mobile-close"
-            onClick={() => setIsOpen(false)}
-            aria-label="Close sidebar"
-          >
-            ✕
-          </button>
-
-          {sections.map((section, idx) => (
-            <div key={idx} className="sidebar-section">
-              <h3 className="sidebar-title">{section.sectionTitle}</h3>
-              <ul className="sidebar-links">
-                {section.links.map((link, index) => (
-                  <li key={index}>
-                    <a
-                      href={link.url}
-                      target={link.external ? '_blank' : '_self'}
-                      rel={link.external ? 'noopener noreferrer' : ''}
-                      className="sidebar-link"
-                    >
-                      {link.icon && <span className="sidebar-icon">{link.icon}</span>}
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </aside>
-    </>
+    <aside className="sidebar">
+      <div className="sidebar-inner">
+        {sections.map((section, idx) => (
+          <div key={idx} className="sidebar-section">
+            <h3 className="sidebar-title">{section.sectionTitle}</h3>
+            <ul className="sidebar-links">
+              {section.links.map((link, index) => (
+                <li key={index}>
+                  <a
+                    href={link.url}
+                    target={link.external ? '_blank' : '_self'}
+                    rel={link.external ? 'noopener noreferrer' : ''}
+                    className="sidebar-link"
+                  >
+                    {link.icon && <span className="sidebar-icon">{link.icon}</span>}
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </aside>
   )
 }
 
 export function RightSidebar() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  if (isMobile) {
+    return null
+  }
+
   return (
     <div className="sidebar sidebar-right">
       <div className="sidebar-inner">

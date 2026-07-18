@@ -225,129 +225,58 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0.3rem 0.5rem;
 }
 
-/* Mobile toggle button */
-.sidebar-toggle {
-  display: none;
-  position: fixed;
-  top: 76px;
-  left: 1rem;
-  z-index: 1001;
-  background: #1a1a1a;
-  color: #ffffff;
-  border: 1px solid #2d2d2d;
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.7rem;
-  font-size: 1.3rem;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+/* ============================================
+   MOBILE SIDEBAR – BELOW HERO
+   ============================================ */
+.mobile-sidebar-section {
+  display: none; /* hidden by default, shown on mobile */
 }
 
-.sidebar-toggle:hover {
+.mobile-sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mobile-sidebar-inner .sidebar-title {
+  color: #3b82f6;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+.mobile-sidebar-inner .sidebar-section + .sidebar-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #2d2d2d;
+}
+
+.mobile-sidebar-inner .sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  color: #ffffff;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.mobile-sidebar-inner .sidebar-link:hover {
   background: #2d2d2d;
+  border-color: #3b82f6;
 }
 
-/* Mobile sidebar overlay */
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-}
-
-/* Mobile slide-in sidebar */
-.sidebar-mobile {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 280px;
-  max-width: 80vw;
-  z-index: 1002;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  overflow-y: auto;
-  padding: 1rem;
-  background: #1a1a1a;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-.sidebar-mobile-open {
-  transform: translateX(0) !important;
-}
-
-.sidebar-mobile-inner {
-  padding: 0.5rem;
-}
-
-.sidebar-mobile-close {
-  background: none;
-  border: none;
-  color: #ffffff;
-  font-size: 1.5rem;
-  cursor: pointer;
-  margin-left: auto;
-  margin-bottom: 1rem;
-  padding: 0.25rem 0.5rem;
-  display: block;
-}
-
-.sidebar-mobile-close:hover {
-  color: #9ca3af;
-}
-
-/* ===== MOBILE RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .sidebar-toggle {
-    display: block;
-  }
-
-  .sidebar-overlay {
-    display: block;
-  }
-
-  .sidebar:not(.sidebar-right) {
-    display: none !important;
-  }
-
-  .sidebar-right {
-    display: none !important;
-  }
-
-  .sidebar-mobile {
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .sidebar-mobile .sidebar-title {
-    color: #3b82f6;
-  }
-
-  .sidebar-mobile .sidebar-link {
-    color: #ffffff;
-  }
-
-  .sidebar-mobile .sidebar-link:hover {
-    background: #2d2d2d;
-    border-color: #3b82f6;
-  }
-}
-
-@media (min-width: 769px) {
-  .sidebar-toggle {
-    display: none !important;
-  }
-  .sidebar-overlay {
-    display: none !important;
-  }
-  .sidebar-mobile {
-    display: none !important;
-  }
-  .sidebar-mobile-close {
-    display: none !important;
-  }
+.mobile-sidebar-inner .sidebar-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 
 /* ============================================
@@ -694,8 +623,33 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
     padding: 0 0 4rem 0;
   }
+
+  /* Desktop sidebars hidden on mobile */
+  .sidebar:not(.sidebar-right) {
+    display: none !important;
+  }
+  .sidebar-right {
+    display: none !important;
+  }
+
+  /* Mobile sidebar visible */
+  .mobile-sidebar-section {
+    display: block !important;
+    margin: 1.5rem 0 2rem 0;
+    padding: 1.25rem;
+    background: #1a1a1a;
+    border-radius: 0.75rem;
+    border: 1px solid #2d2d2d;
+  }
+
   .quote-card {
     padding: 1rem 1.25rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-sidebar-section {
+    display: none !important;
   }
 }
 

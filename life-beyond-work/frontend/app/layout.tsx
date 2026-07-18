@@ -32,6 +32,8 @@ export default async function RootLayout({
   const sidebarSections = await getSidebarLinks();
   const logoImage = siteSettings?.logo;
 
+  const hasSidebarSections = sidebarSections && sidebarSections.length > 0;
+
   return (
     <html lang="en">
       <body>
@@ -70,20 +72,49 @@ export default async function RootLayout({
           </div>
         </nav>
 
-        {/* Main Content with Sidebars */}
         <main className="main-content">
           <div className="page-with-sidebar">
             <div className="page-with-sidebar-inner">
+              {/* Left Sidebar – hidden on mobile */}
               <Sidebar sections={sidebarSections} />
+
               <div className="page-main-content">
+                {/* Mobile Sidebar – visible only on mobile, below hero */}
+                {hasSidebarSections && (
+                  <div className="mobile-sidebar-section">
+                    <div className="mobile-sidebar-inner">
+                      {sidebarSections.map((section: any, idx: number) => (
+                        <div key={idx} className="sidebar-section">
+                          <h3 className="sidebar-title">{section.sectionTitle}</h3>
+                          <ul className="sidebar-links">
+                            {section.links.map((link: any, index: number) => (
+                              <li key={index}>
+                                <a
+                                  href={link.url}
+                                  target={link.external ? '_blank' : '_self'}
+                                  rel={link.external ? 'noopener noreferrer' : ''}
+                                  className="sidebar-link"
+                                >
+                                  {link.icon && <span className="sidebar-icon">{link.icon}</span>}
+                                  {link.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {children}
               </div>
+
+              {/* Right Sidebar – hidden on mobile */}
               <RightSidebar />
             </div>
           </div>
         </main>
 
-        {/* Footer */}
         <footer className="site-footer">
           <div className="footer-container">
             <div className="footer-social">
