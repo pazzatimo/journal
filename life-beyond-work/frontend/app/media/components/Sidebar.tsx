@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 
 interface LinkItem {
   label: string
@@ -10,7 +11,7 @@ interface LinkItem {
 }
 
 interface SidebarSection {
-  title: string
+  sectionTitle: string
   links: LinkItem[]
 }
 
@@ -19,31 +20,66 @@ interface SidebarProps {
 }
 
 export function Sidebar({ sections }: SidebarProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  if (!sections || sections.length === 0) {
+    return null
+  }
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar-inner">
-        {sections.map((section, idx) => (
-          <div key={idx} className="sidebar-section">
-            <h3 className="sidebar-title">{section.title}</h3>
-            <ul className="sidebar-links">
-              {section.links.map((link, index) => (
-                <li key={index}>
-                  <a
-                    href={link.url}
-                    target={link.external ? '_blank' : '_self'}
-                    rel={link.external ? 'noopener noreferrer' : ''}
-                    className="sidebar-link"
-                  >
-                    {link.icon && <span className="sidebar-icon">{link.icon}</span>}
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </aside>
+    <>
+      {/* Mobile Toggle Button */}
+      <button
+        className="sidebar-toggle"
+        onClick={() => setIsOpen(true)}
+        aria-label="Open sidebar"
+      >
+        ☰
+      </button>
+
+      {/* Overlay */}
+      {isOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+        <div className="sidebar-inner">
+          {/* Close button (mobile) */}
+          <button
+            className="sidebar-close"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close sidebar"
+          >
+            ✕
+          </button>
+
+          {sections.map((section, idx) => (
+            <div key={idx} className="sidebar-section">
+              <h3 className="sidebar-title">{section.sectionTitle}</h3>
+              <ul className="sidebar-links">
+                {section.links.map((link, index) => (
+                  <li key={index}>
+                    <a
+                      href={link.url}
+                      target={link.external ? '_blank' : '_self'}
+                      rel={link.external ? 'noopener noreferrer' : ''}
+                      className="sidebar-link"
+                    >
+                      {link.icon && <span className="sidebar-icon">{link.icon}</span>}
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </aside>
+    </>
   )
 }
 
