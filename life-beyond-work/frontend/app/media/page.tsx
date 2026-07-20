@@ -1,31 +1,76 @@
 import { client, urlFor, getSidebarLinks } from '@/lib/sanity'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { LikeButton } from '@/components/LikeButton'
-import { Comments } from '@/components/Comments'
-import { ShareButtons } from '@/components/ShareButtons'
 import { MobileSidebar } from '@/components/MobileSidebar'
 
-async function getMediaItem(slug: string) {
-  const allMedia = await client.fetch(`
-    *[_type == "media"] {
-      _id,
-      title,
-      slug,
-      category,
-      description,
-      thumbnail,
-      file,
-      lyrics,
-      publishedAt,
-      tags,
-      likes
-    }
-  `)
-  return allMedia.find((m: any) => m.slug?.current === slug) || null
+// ----------------------------------------------
+// Constants
+// ----------------------------------------------
+const ITEMS_PER_PAGE = 20
+
+// ----------------------------------------------
+// Fetch folder preview data (counts + 5 recent items)
+// ----------------------------------------------
+async function getFolderPreviews() {
+  const [music, videos, documents] = await Promise.all([
+    client.fetch(`{
+      "count": count(*[_type == "media" && (category == "song" || category == "audio")]),
+      "items": *[_type == "media" && (category == "song" || category == "audio")] | order(publishedAt desc)[0...5] {
+        _id, title, slug, category, thumbnail, publishedAt
+      }
+    }`),
+    client.fetch(`{
+      "count": count(*[_type == "media" && category == "video"]),
+      "items": *[_type == "media" && category == "video"] | order(publishedAt desc)[0...5] {
+        _id, title, slug, category, thumbnail, publishedAt
+      }
+    }`),
+    client.fetch(`{
+      "count": count(*[_type == "media" && category == "document"]),
+      "items": *[_type == "media" && category == "document"] | order(publishedAt desc)[0...5] {
+        _id, title, slug, category, thumbnail, publishedAt
+      }
+    }`),
+  ])
+
+  return {
+    Music: music,
+    Videos: videos,
+    Documents: documents,
+  }
 }
 
+// ----------------------------------------------
+// Fetch paginated items for a specific folder
+// ----------------------------------------------
+async function getFolderItems(folder: string, page: number) {
+  let categoryFilter = ''
+  if (folder === 'music') {
+    categoryFilter = '(category == "song" || category == "audio")'
+  } else if (folder === 'videos') {
+    categoryFilter = 'category == "video"'
+  } else if (folder === 'documents') {
+    categoryFilter = 'category == "document"'
+  } else {
+    return { items: [], totalCount: 0, totalPages: 0 }
+  }
+
+  const offset = (page - 1) * ITEMS_PER_PAGE
+  const [items, totalCount] = await Promise.all([
+    client.fetch(
+      `*[_type == "media" && ${categoryFilter}] | order(publishedAt desc) [${offset}...${offset + ITEMS_PER_PAGE}] {
+        _id, title, slug, category, thumbnail, publishedAt
+      }`
+    ),
+    client.fetch(`count(*[_type == "media" && ${categoryFilter}])`),
+  ])
+
+  return { items, totalCount, totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE) }
+}
+
+// ----------------------------------------------
+// Helper functions
+// ----------------------------------------------
 function getCategoryEmoji(category: string): string {
   const emojis: Record<string, string> = {
     song: '🎵',
@@ -36,231 +81,534 @@ function getCategoryEmoji(category: string): string {
   return emojis[category] || '📁'
 }
 
-function getCategoryLabel(category: string): string {
-  const labels: Record<string, string> = {
-    song: 'Song',
-    audio: 'Audio',
-    video: 'Video',
-    document: 'Document',
+function getFolderEmoji(folder: string): string {
+  const map: Record<string, string> = {
+    music: '🎵',
+    videos: '🎬',
+    documents: '📄',
   }
-  return labels[category] || category
+  return map[folder] || '📁'
 }
 
-function getSanityFileUrl(assetRef: string): string {
-  if (!assetRef) return ''
-  const ref = assetRef
-  const id = ref.replace(/^file-/, '').replace(/-\w+$/, '')
-  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
-  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
-  const extMatch = ref.match(/-([a-z0-9]+)$/)
-  const ext = extMatch ? extMatch[1] : 'mp3'
-  return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
+function getFolderLabel(folder: string): string {
+  const map: Record<string, string> = {
+    music: 'Music',
+    videos: 'Videos',
+    documents: 'Documents',
+  }
+  return map[folder] || folder
 }
 
-export default async function MediaDetailPage({
-  params,
+// ----------------------------------------------
+// Main Page Component
+// ----------------------------------------------
+export default async function MediaPage({
+  searchParams,
 }: {
-  params: Promise<{ slug: string }>
+  searchParams: Promise<{ folder?: string; page?: string }>
 }) {
-  const { slug } = await params
-  const item = await getMediaItem(slug)
+  const { folder, page } = await searchParams
+  const currentPage = parseInt(page || '1', 10)
   const sidebarSections = await getSidebarLinks()
 
-  if (!item) {
-    notFound()
-  }
+  // ------------------------------------------------------------
+  // CASE 1: A specific folder is requested (e.g. ?folder=music)
+  // Show paginated list
+  // ------------------------------------------------------------
+  if (folder && ['music', 'videos', 'documents'].includes(folder)) {
+    const { items, totalCount, totalPages } = await getFolderItems(folder, currentPage)
+    const folderEmoji = getFolderEmoji(folder)
+    const folderLabel = getFolderLabel(folder)
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://timopazza.com'
-  const url = `${baseUrl}/media/${slug}`
-  const title = item.title
+    return (
+      <div
+        className="page-main-content"
+        style={{
+          maxWidth: '720px',
+          margin: '0 auto',
+          padding: '2rem 1.5rem 4rem 1.5rem',
+        }}
+      >
+        <MobileSidebar sections={sidebarSections} />
 
-  let fileUrl = ''
-  if (item.file?.asset?._ref) {
-    fileUrl = getSanityFileUrl(item.file.asset._ref)
-  }
+        <Link
+          href="/media"
+          style={{
+            display: 'inline-block',
+            marginBottom: '1.5rem',
+            fontSize: '0.875rem',
+            color: '#2563eb',
+            textDecoration: 'none',
+          }}
+        >
+          ← Back to Media Library
+        </Link>
 
-  const isAudio = item.category === 'audio' || item.category === 'song'
-  const isVideo = item.category === 'video'
-  const isDocument = item.category === 'document'
-
-  return (
-    <div className="page-main-content" style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
-      <MobileSidebar sections={sidebarSections} />
-
-      <Link href="/media" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
-        ← Back to Media
-      </Link>
-
-      {item.thumbnail && (
-        <div style={{ position: 'relative', height: 'clamp(200px, 40vw, 320px)', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem', backgroundColor: '#f3f4f6' }}>
-          <Image src={urlFor(item.thumbnail).url()} alt={item.title} fill style={{ objectFit: 'cover' }} priority sizes="(max-width: 720px) 100vw, 720px" />
-        </div>
-      )}
-
-      <header style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '1.5rem' }}>{getCategoryEmoji(item.category)}</span>
-          <span style={{
-            fontSize: '0.75rem',
-            fontWeight: '500',
-            color: '#6b7280',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}>
-            {getCategoryLabel(item.category)}
-          </span>
-          {item.tags?.includes('Kiswahili') && (
-            <span style={{
-              fontSize: '0.65rem',
-              fontWeight: '500',
-              color: '#ffffff',
-              background: '#1a1a1a',
-              padding: '0.2rem 0.6rem',
-              borderRadius: '9999px',
-            }}>
-              🇹🇿 Kiswahili
-            </span>
-          )}
-          {item.tags?.includes('English') && (
-            <span style={{
-              fontSize: '0.65rem',
-              fontWeight: '500',
-              color: '#ffffff',
-              background: '#2563eb',
-              padding: '0.2rem 0.6rem',
-              borderRadius: '9999px',
-            }}>
-              🇬🇧 English
-            </span>
-          )}
-        </div>
-        <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: '400', color: '#1a1a1a', lineHeight: '1.2', marginBottom: '0.5rem' }}>
-          {item.title}
+        <h1
+          style={{
+            fontSize: 'clamp(1.8rem, 5vw, 2.5rem)',
+            fontWeight: '400',
+            color: '#111827',
+            marginBottom: '0.25rem',
+          }}
+        >
+          {folderEmoji} {folderLabel}
         </h1>
-        {item.description && (
-          <p style={{ fontSize: 'clamp(1rem, 2vw, 1.1rem)', color: '#4b5563', marginBottom: '1rem' }}>
-            {item.description}
-          </p>
-        )}
-        {item.publishedAt && (
-          <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
-            {new Date(item.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </p>
-        )}
-        {item.tags && item.tags.length > 0 && (
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-            {item.tags.filter((tag: string) => tag !== 'Kiswahili' && tag !== 'English').map((tag: string) => (
-              <span key={tag} style={{
-                backgroundColor: '#f3f4f6',
-                padding: '0.2rem 0.7rem',
-                borderRadius: '9999px',
-                fontSize: '0.7rem',
-                color: '#4b5563',
-              }}>
-                #{tag}
-              </span>
+        <p
+          style={{
+            color: '#6b7280',
+            fontSize: '0.9rem',
+            marginBottom: '2rem',
+            borderBottom: '1px solid #f3f4f6',
+            paddingBottom: '1rem',
+          }}
+        >
+          {totalCount} items • Page {currentPage} of {totalPages}
+        </p>
+
+        {items.length === 0 ? (
+          <p style={{ color: '#6b7280' }}>No items found.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            {items.map((item: any) => (
+              <Link
+                key={item._id}
+                href={`/media/${item.slug.current}`}
+                style={{
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  display: 'block',
+                }}
+              >
+                <div className="media-item">
+                  {item.thumbnail && (
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '48px',
+                        height: '48px',
+                        flexShrink: 0,
+                        borderRadius: '6px',
+                        overflow: 'hidden',
+                        backgroundColor: '#f3f4f6',
+                      }}
+                    >
+                      <Image
+                        src={urlFor(item.thumbnail).url()}
+                        alt={item.title}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        fontSize: '1rem',
+                        fontWeight: '450',
+                        color: '#1f2937',
+                      }}
+                    >
+                      {item.title}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: '#9ca3af',
+                      }}
+                    >
+                      {getCategoryEmoji(item.category)} {item.category}
+                      {item.publishedAt &&
+                        ` • ${new Date(item.publishedAt).toLocaleDateString(
+                          'en-US',
+                          { year: 'numeric', month: 'short', day: 'numeric' }
+                        )}`}
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         )}
-      </header>
 
-      {fileUrl && (
-        <div style={{
-          backgroundColor: '#f9fafb',
-          padding: '1.5rem',
-          borderRadius: '0.75rem',
-          marginBottom: '2rem',
-          border: '1px solid #e5e7eb',
-        }}>
-          {isVideo && (
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-              <video
-                controls
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              marginTop: '2.5rem',
+              paddingTop: '1.5rem',
+              borderTop: '1px solid #f3f4f6',
+              flexWrap: 'wrap',
+            }}
+          >
+            {currentPage > 1 && (
+              <Link
+                href={`/media?folder=${folder}&page=${currentPage - 1}`}
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: '0.5rem',
-                }}
-              >
-                <source src={fileUrl} />
-                Your browser does not support the video element.
-              </video>
-            </div>
-          )}
-
-          {isAudio && (
-            <div>
-              <p style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.5rem' }}>
-                {getCategoryEmoji(item.category)} {item.title}
-              </p>
-              <audio controls style={{ width: '100%' }}>
-                <source src={fileUrl} />
-                Your browser does not support the audio element.
-              </audio>
-            </div>
-          )}
-
-          {isDocument && (
-            <div>
-              <p style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.5rem' }}>
-                📄 Document: {item.title}
-              </p>
-              <a
-                href={fileUrl}
-                download
-                style={{
-                  display: 'inline-block',
-                  backgroundColor: '#1a1a1a',
-                  color: '#ffffff',
-                  padding: '0.5rem 1.5rem',
-                  borderRadius: '0.375rem',
+                  padding: '0.4rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #e5e7eb',
                   textDecoration: 'none',
+                  color: '#374151',
                   fontSize: '0.875rem',
                 }}
+                className="pagination-link"
               >
-                📥 Download Document
-              </a>
-            </div>
-          )}
-        </div>
-      )}
+                ← Previous
+              </Link>
+            )}
 
-      {item.lyrics && isAudio && (
-        <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.3rem)', fontWeight: '400', color: '#1a1a1a', marginBottom: '0.5rem' }}>
-            Lyrics
-          </h2>
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '1.5rem',
-            borderRadius: '0.75rem',
-            border: '1px solid #e5e7eb',
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'monospace',
-            fontSize: 'clamp(0.8rem, 1.5vw, 0.95rem)',
-            lineHeight: '1.8',
-            color: '#1a1a1a',
-          }}>
-            {item.lyrics}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum
+              if (totalPages <= 5) {
+                pageNum = i + 1
+              } else if (currentPage <= 3) {
+                pageNum = i + 1
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i
+              } else {
+                pageNum = currentPage - 2 + i
+              }
+              return (
+                <Link
+                  key={pageNum}
+                  href={`/media?folder=${folder}&page=${pageNum}`}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    border:
+                      currentPage === pageNum
+                        ? '2px solid #111827'
+                        : '1px solid #e5e7eb',
+                    textDecoration: 'none',
+                    color: currentPage === pageNum ? '#111827' : '#374151',
+                    fontWeight: currentPage === pageNum ? '600' : '400',
+                    fontSize: '0.875rem',
+                    backgroundColor:
+                      currentPage === pageNum ? '#f9fafb' : 'transparent',
+                  }}
+                  className="pagination-link"
+                >
+                  {pageNum}
+                </Link>
+              )
+            })}
+
+            {currentPage < totalPages && (
+              <Link
+                href={`/media?folder=${folder}&page=${currentPage + 1}`}
+                style={{
+                  padding: '0.4rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #e5e7eb',
+                  textDecoration: 'none',
+                  color: '#374151',
+                  fontSize: '0.875rem',
+                }}
+                className="pagination-link"
+              >
+                Next →
+              </Link>
+            )}
           </div>
-        </div>
-      )}
+        )}
 
-      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-          <LikeButton initialLikes={item.likes || 0} id={item._id} type="media" />
-          <ShareButtons url={url} title={title} />
-        </div>
+        <style>{`
+          .media-item {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.5rem 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.15s ease;
+          }
+          .media-item:hover {
+            background-color: #f9fafb;
+          }
+          .pagination-link:hover {
+            background-color: #f3f4f6;
+          }
+        `}</style>
+      </div>
+    )
+  }
+
+  // ------------------------------------------------------------
+  // CASE 2: No folder parameter → show the horizontal folder grid
+  // (with previews and "View all" links)
+  // ------------------------------------------------------------
+  const folderData = await getFolderPreviews()
+  const folderNames = ['Music', 'Videos', 'Documents']
+  const groupEmojis: Record<string, string> = {
+    Music: '🎵',
+    Videos: '🎬',
+    Documents: '📄',
+  }
+  const groupSlugs: Record<string, string> = {
+    Music: 'music',
+    Videos: 'videos',
+    Documents: 'documents',
+  }
+
+  return (
+    <div
+      className="page-main-content"
+      style={{
+        maxWidth: '960px',
+        margin: '0 auto',
+        padding: '2rem 1.5rem 4rem 1.5rem',
+      }}
+    >
+      <MobileSidebar sections={sidebarSections} />
+
+      <h1
+        style={{
+          fontSize: 'clamp(2rem, 5vw, 2.8rem)',
+          fontWeight: '400',
+          color: '#111827',
+          marginBottom: '0.5rem',
+          letterSpacing: '-0.02em',
+        }}
+      >
+        Media Library
+      </h1>
+      <p
+        style={{
+          color: '#6b7280',
+          fontSize: '1rem',
+          marginBottom: '2.5rem',
+          borderBottom: '1px solid #f3f4f6',
+          paddingBottom: '1rem',
+        }}
+      >
+        Browse our collection of music, videos, and documents.
+      </p>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '1.5rem',
+          width: '100%',
+        }}
+      >
+        {folderNames.map((folderName) => {
+          const data = folderData[folderName as keyof typeof folderData]
+          const items = data?.items || []
+          const count = data?.count || 0
+          const slug = groupSlugs[folderName]
+
+          return (
+            <details
+              key={folderName}
+              className="folder-card"
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              {/* FOLDER HEADER */}
+              <summary className="folder-summary">
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '1.5rem 1rem 1rem 1rem',
+                    width: '100%',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '2.8rem',
+                      lineHeight: 1,
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    {groupEmojis[folderName] || '📁'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '1.2rem',
+                      fontWeight: '500',
+                      color: '#111827',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {folderName}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      color: '#9ca3af',
+                      marginTop: '0.15rem',
+                    }}
+                  >
+                    {count} item{count !== 1 ? 's' : ''}
+                  </span>
+                  <span
+                    className="chevron"
+                    style={{
+                      marginTop: '0.5rem',
+                      fontSize: '0.7rem',
+                      color: '#9ca3af',
+                      transition: 'transform 0.2s ease',
+                      display: 'inline-block',
+                    }}
+                  >
+                    ▼
+                  </span>
+                </div>
+              </summary>
+
+              {/* FOLDER CONTENTS (Preview) */}
+              <div
+                style={{
+                  padding: '0 0.75rem 1.25rem 0.75rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.25rem',
+                  borderTop: '1px solid #f9fafb',
+                }}
+              >
+                {items.map((item: any) => (
+                  <Link
+                    key={item._id}
+                    href={`/media/${item.slug.current}`}
+                    style={{
+                      textDecoration: 'none',
+                      color: 'inherit',
+                      display: 'block',
+                    }}
+                  >
+                    <div className="media-item-preview">
+                      {item.thumbnail && (
+                        <div
+                          style={{
+                            position: 'relative',
+                            width: '36px',
+                            height: '36px',
+                            flexShrink: 0,
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            backgroundColor: '#f3f4f6',
+                          }}
+                        >
+                          <Image
+                            src={urlFor(item.thumbnail).url()}
+                            alt={item.title}
+                            fill
+                            style={{ objectFit: 'cover' }}
+                          />
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: '0.85rem',
+                            fontWeight: '450',
+                            color: '#1f2937',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {item.title}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '0.65rem',
+                            color: '#9ca3af',
+                            textTransform: 'capitalize',
+                          }}
+                        >
+                          {item.category}
+                          {item.publishedAt &&
+                            ` • ${new Date(item.publishedAt).getFullYear()}`}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+
+                {/* "View All" link → goes to ?folder=slug */}
+                {count > 5 && (
+                  <Link
+                    href={`/media?folder=${slug}`}
+                    style={{
+                      display: 'block',
+                      textAlign: 'center',
+                      marginTop: '0.5rem',
+                      padding: '0.4rem',
+                      fontSize: '0.8rem',
+                      fontWeight: '500',
+                      color: '#2563eb',
+                      textDecoration: 'none',
+                      border: '1px dashed #d1d5db',
+                      borderRadius: '6px',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                    className="view-all-link"
+                  >
+                    View all {count} items →
+                  </Link>
+                )}
+              </div>
+            </details>
+          )
+        })}
       </div>
 
-      {/* Comments */}
-      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
-        <h3 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.3rem)', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
-        <Comments id={item._id} title={item.title} url={url} />
-      </div>
+      <style>{`
+        .folder-card:hover {
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+          border-color: #d1d5db;
+        }
+        .folder-card[open] .chevron {
+          transform: rotate(180deg);
+        }
+        .folder-summary {
+          list-style: none;
+          cursor: pointer;
+          user-select: none;
+        }
+        .folder-summary::-webkit-details-marker {
+          display: none;
+        }
+        .folder-summary::marker {
+          display: none;
+        }
+        .media-item-preview {
+          display: flex;
+          gap: 0.6rem;
+          align-items: center;
+          padding: 0.35rem 0.5rem;
+          border-radius: 6px;
+          transition: background-color 0.15s ease;
+        }
+        .media-item-preview:hover {
+          background-color: #f3f4f6;
+        }
+        .view-all-link:hover {
+          background-color: #eff6ff;
+          border-color: #93c5fd;
+        }
+        .folder-card {
+          transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+      `}</style>
     </div>
   )
 }

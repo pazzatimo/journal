@@ -7,23 +7,24 @@ import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
 import { MobileSidebar } from '@/components/MobileSidebar'
 
+// ----------------------------------------------
+// FIXED: fetch only the matching document directly
+// ----------------------------------------------
 async function getMediaItem(slug: string) {
-  const allMedia = await client.fetch(`
-    *[_type == "media"] {
-      _id,
-      title,
-      slug,
-      category,
-      description,
-      thumbnail,
-      file,
-      lyrics,
-      publishedAt,
-      tags,
-      likes
-    }
-  `)
-  return allMedia.find((m: any) => m.slug?.current === slug) || null
+  const query = `*[_type == "media" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    category,
+    description,
+    thumbnail,
+    file,
+    lyrics,
+    publishedAt,
+    tags,
+    likes
+  }`
+  return await client.fetch(query, { slug })
 }
 
 function getCategoryEmoji(category: string): string {
@@ -63,6 +64,10 @@ export default async function MediaDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+
+  // Debug: check what slug is being received
+  console.log('🔍 Media page slug:', slug)
+
   const item = await getMediaItem(slug)
   const sidebarSections = await getSidebarLinks()
 
