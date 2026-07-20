@@ -5,7 +5,6 @@ import { PortableText } from '@portabletext/react'
 import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
-import { Sidebar, RightSidebar } from '@/components/Sidebar'
 import { MobileSidebar } from '@/components/MobileSidebar'
 import { notFound } from 'next/navigation'
 
@@ -120,61 +119,56 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
   const showVideoBottom = videoPosition === 'bottom'
 
   return (
-    <div className="page-with-sidebar">
-      <div className="page-with-sidebar-inner">
-        <Sidebar sections={sidebarSections} />
-        <div className="page-main-content">
-          <MobileSidebar sections={sidebarSections} />
-          <article style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
-            <Link href="/stories" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
-              ← Back to Stories
-            </Link>
+    <div className="page-main-content" style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
+      <MobileSidebar sections={sidebarSections} />
 
-            <header style={{ marginBottom: '2rem' }}>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: '400', color: '#1a1a1a', lineHeight: '1.2', marginBottom: '1rem' }}>
-                {story.title}
-              </h1>
-              <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                <time>{story.publishedAt ? new Date(story.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date not set'}</time>
-                {story.categories && story.categories.length > 0 && (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                    {story.categories.map((cat: string) => <span key={cat} style={{ backgroundColor: '#f3f4f6', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', color: '#4b5563' }}>{cat}</span>)}
-                  </div>
-                )}
-              </div>
-            </header>
+      <Link href="/stories" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
+        ← Back to Stories
+      </Link>
 
-            {story.coverImage && (
-              <div style={{ position: 'relative', height: '400px', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem', backgroundColor: '#f3f4f6' }}>
-                <Image src={urlFor(story.coverImage).url()} alt={story.title} fill style={{ objectFit: 'cover' }} priority sizes="(max-width: 720px) 100vw, 720px" />
-              </div>
-            )}
-
-            {story.audio && story.audio.file && <AudioPlayer audio={story.audio} />}
-            {showVideoTop && story.video && story.video.url && <VideoPlayer video={story.video} />}
-
-            <div style={{ fontSize: '1.1rem', lineHeight: '1.9', color: '#1a1a1a' }}>
-              {story.storyContent && <PortableText value={story.storyContent} components={portableTextComponents} />}
+      <header style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '400', color: '#1a1a1a', lineHeight: '1.2', marginBottom: '1rem' }}>
+          {story.title}
+        </h1>
+        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+          <time>{story.publishedAt ? new Date(story.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date not set'}</time>
+          {story.categories && story.categories.length > 0 && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+              {story.categories.map((cat: string) => <span key={cat} style={{ backgroundColor: '#f3f4f6', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', color: '#4b5563' }}>{cat}</span>)}
             </div>
-
-            {showVideoBottom && story.video && story.video.url && <VideoPlayer video={story.video} />}
-
-            <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-                <LikeButton initialLikes={story.likes || 0} id={story._id} type="story" />
-                <ShareButtons url={url} title={title} />
-              </div>
-            </div>
-
-            {/* Comments */}
-            <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
-              <Comments id={story._id} title={story.title} url={url} />
-            </div>
-          </article>
+          )}
         </div>
-        <RightSidebar />
+      </header>
+
+      {story.coverImage && (
+        <div style={{ position: 'relative', height: '400px', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem', backgroundColor: '#f3f4f6' }}>
+          <Image src={urlFor(story.coverImage).url()} alt={story.title} fill style={{ objectFit: 'cover' }} priority sizes="(max-width: 720px) 100vw, 720px" />
+        </div>
+      )}
+
+      {story.audio && story.audio.file && <AudioPlayer audio={story.audio} />}
+      {showVideoTop && story.video && story.video.url && <VideoPlayer video={story.video} />}
+
+      <div style={{ fontSize: '1.1rem', lineHeight: '1.9', color: '#1a1a1a' }}>
+        {story.storyContent && <PortableText value={story.storyContent} components={portableTextComponents} />}
+      </div>
+
+      {showVideoBottom && story.video && story.video.url && <VideoPlayer video={story.video} />}
+
+      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+          <LikeButton initialLikes={story.likes || 0} id={story._id} type="story" />
+          <ShareButtons url={url} title={title} />
+        </div>
+      </div>
+
+      {/* Comments */}
+      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
+        <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
+        <Comments id={story._id} title={story.title} url={url} />
       </div>
     </div>
   )
 }
+
+export const revalidate = 60;

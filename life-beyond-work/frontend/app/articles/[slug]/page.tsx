@@ -5,7 +5,6 @@ import { PortableText } from '@portabletext/react'
 import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
-import { Sidebar, RightSidebar } from '@/components/Sidebar'
 import { MobileSidebar } from '@/components/MobileSidebar'
 import { notFound } from 'next/navigation'
 
@@ -66,59 +65,54 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const title = article.title
 
   return (
-    <div className="page-with-sidebar">
-      <div className="page-with-sidebar-inner">
-        <Sidebar sections={sidebarSections} />
-        <div className="page-main-content">
-          <MobileSidebar sections={sidebarSections} />
-          <article style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
-            <Link href="/articles" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
-              ← Back to Articles
-            </Link>
+    <div className="page-main-content" style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
+      <MobileSidebar sections={sidebarSections} />
 
-            <header style={{ marginBottom: '2rem' }}>
-              <h1 style={{ fontSize: '2.5rem', fontWeight: '400', color: '#1a1a1a', lineHeight: '1.2', marginBottom: '1rem' }}>
-                {article.title}
-              </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.875rem', flexWrap: 'wrap' }}>
-                {article.author?.name && <span>{article.author.name}</span>}
-                {article.author?.name && <span>•</span>}
-                <time>{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date not set'}</time>
-              </div>
-            </header>
+      <Link href="/articles" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
+        ← Back to Articles
+      </Link>
 
-            {article.coverImage && (
-              <div style={{ position: 'relative', height: '400px', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem', backgroundColor: '#f3f4f6' }}>
-                <Image src={urlFor(article.coverImage).url()} alt={article.title} fill style={{ objectFit: 'cover' }} priority sizes="(max-width: 720px) 100vw, 720px" />
-              </div>
-            )}
-
-            {article.summary && (
-              <div style={{ borderLeft: '4px solid #e5e7eb', paddingLeft: '1.5rem', marginBottom: '2rem', fontSize: '1.2rem', color: '#4b5563', fontStyle: 'italic' }}>
-                {article.summary}
-              </div>
-            )}
-
-            <div style={{ fontSize: '1.1rem', lineHeight: '1.9', color: '#1a1a1a' }}>
-              {article.body && <PortableText value={article.body} components={portableTextComponents} />}
-            </div>
-
-            <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-                <LikeButton initialLikes={article.likes || 0} id={article._id} type="article" />
-                <ShareButtons url={url} title={title} />
-              </div>
-            </div>
-
-            {/* Comments */}
-            <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
-              <Comments id={article._id} title={article.title} url={url} />
-            </div>
-          </article>
+      <header style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '400', color: '#1a1a1a', lineHeight: '1.2', marginBottom: '1rem' }}>
+          {article.title}
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.875rem', flexWrap: 'wrap' }}>
+          {article.author?.name && <span>{article.author.name}</span>}
+          {article.author?.name && <span>•</span>}
+          <time>{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date not set'}</time>
         </div>
-        <RightSidebar />
+      </header>
+
+      {article.coverImage && (
+        <div style={{ position: 'relative', height: '400px', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem', backgroundColor: '#f3f4f6' }}>
+          <Image src={urlFor(article.coverImage).url()} alt={article.title} fill style={{ objectFit: 'cover' }} priority sizes="(max-width: 720px) 100vw, 720px" />
+        </div>
+      )}
+
+      {article.summary && (
+        <div style={{ borderLeft: '4px solid #e5e7eb', paddingLeft: '1.5rem', marginBottom: '2rem', fontSize: '1.2rem', color: '#4b5563', fontStyle: 'italic' }}>
+          {article.summary}
+        </div>
+      )}
+
+      <div style={{ fontSize: '1.1rem', lineHeight: '1.9', color: '#1a1a1a' }}>
+        {article.body && <PortableText value={article.body} components={portableTextComponents} />}
+      </div>
+
+      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+          <LikeButton initialLikes={article.likes || 0} id={article._id} type="article" />
+          <ShareButtons url={url} title={title} />
+        </div>
+      </div>
+
+      {/* Comments Section - ✓ Confirmed Present */}
+      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
+        <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
+        <Comments id={article._id} title={article.title} url={url} />
       </div>
     </div>
   )
 }
+
+export const revalidate = 60;

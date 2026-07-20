@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ShareButtons } from '@/components/ShareButtons'
-import { Sidebar, RightSidebar } from '@/components/Sidebar'
 import { MobileSidebar } from '@/components/MobileSidebar'
 import { Comments } from '@/components/Comments'
 import { LikeButton } from '@/components/LikeButton'
@@ -389,35 +388,19 @@ export default function GalleryDetailPage({ params }: { params: Promise<{ slug: 
 
   if (loading) {
     return (
-      <div className="page-with-sidebar">
-        <div className="page-with-sidebar-inner">
-          <Sidebar sections={sidebarSections} />
-          <div className="page-main-content">
-            <MobileSidebar sections={sidebarSections} />
-            <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-              <p style={{ color: '#9ca3af' }}>Loading gallery...</p>
-            </div>
-          </div>
-          <RightSidebar />
-        </div>
+      <div className="page-main-content" style={{ textAlign: 'center', padding: '4rem 0' }}>
+        <MobileSidebar sections={sidebarSections} />
+        <p style={{ color: '#9ca3af' }}>Loading gallery...</p>
       </div>
     )
   }
 
   if (!gallery) {
     return (
-      <div className="page-with-sidebar">
-        <div className="page-with-sidebar-inner">
-          <Sidebar sections={sidebarSections} />
-          <div className="page-main-content">
-            <MobileSidebar sections={sidebarSections} />
-            <div style={{ padding: '4rem 0', textAlign: 'center' }}>
-              <h1 style={{ fontSize: '2rem', fontWeight: '300' }}>Gallery not found</h1>
-              <Link href="/gallery" style={{ color: '#2563eb', textDecoration: 'none' }}>← Back to galleries</Link>
-            </div>
-          </div>
-          <RightSidebar />
-        </div>
+      <div className="page-main-content" style={{ padding: '4rem 0', textAlign: 'center' }}>
+        <MobileSidebar sections={sidebarSections} />
+        <h1 style={{ fontSize: '2rem', fontWeight: '300' }}>Gallery not found</h1>
+        <Link href="/gallery" style={{ color: '#2563eb', textDecoration: 'none' }}>← Back to galleries</Link>
       </div>
     )
   }
@@ -425,103 +408,114 @@ export default function GalleryDetailPage({ params }: { params: Promise<{ slug: 
   const url = `${baseUrl}/gallery/${gallery.slug?.current}`
 
   return (
-    <div className="page-with-sidebar">
-      <div className="page-with-sidebar-inner">
-        <Sidebar sections={sidebarSections} />
-        <div className="page-main-content">
-          <MobileSidebar sections={sidebarSections} />
-          <div style={{ padding: '2rem 0 4rem 0' }}>
-            <Link href="/gallery" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
-              ← Back to galleries
-            </Link>
+    <div className="page-main-content" style={{ padding: '2rem 0 4rem 0' }}>
+      <MobileSidebar sections={sidebarSections} />
 
-            <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '0.5rem' }}>
-              {gallery.title}
-            </h1>
-            {gallery.description && (
-              <p style={{ color: '#4b5563', fontSize: '1.1rem', marginBottom: '1.5rem' }}>{gallery.description}</p>
-            )}
-            {gallery.publishedAt && (
-              <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '2rem' }}>
-                {new Date(gallery.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-            )}
+      <Link href="/gallery" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
+        ← Back to galleries
+      </Link>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                gap: '1rem',
-              }}
-            >
-              {gallery.images &&
-                gallery.images.map((item: any, index: number) => {
-                  const likeCount = imageLikes[index] || 0
-                  
-                  return (
-                    <div
-                      key={index}
-                      onClick={() => handleImageClick(index)}
-                      style={{
-                        position: 'relative',
-                        width: '100%',
-                        paddingBottom: '100%',
-                        backgroundColor: '#f3f4f6',
-                        borderRadius: '0.5rem',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s, box-shadow 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'scale(1.02)'
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'scale(1)'
-                        e.currentTarget.style.boxShadow = 'none'
-                      }}
-                    >
-                      <Image
-                        src={urlFor(item.image).url()}
-                        alt={item.caption || gallery.title}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        sizes="(max-width: 768px) 100vw, 200px"
-                      />
-                      {likeCount > 0 && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            bottom: '0.5rem',
-                            right: '0.5rem',
-                            background: 'rgba(0,0,0,0.7)',
-                            color: '#ffffff',
-                            fontSize: '0.7rem',
-                            padding: '0.2rem 0.5rem',
-                            borderRadius: '9999px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.25rem',
-                            backdropFilter: 'blur(4px)',
-                          }}
-                        >
-                          ❤️ {likeCount}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-            </div>
+      <h1 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#1a1a1a', marginBottom: '0.5rem' }}>
+        {gallery.title}
+      </h1>
+      {gallery.description && (
+        <p style={{ color: '#4b5563', fontSize: '1.1rem', marginBottom: '1.5rem' }}>{gallery.description}</p>
+      )}
+      {gallery.publishedAt && (
+        <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '2rem' }}>
+          {new Date(gallery.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+      )}
 
-            {/* Comments */}
-            <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
-              <Comments id={gallery._id} title={gallery.title} url={url} />
-            </div>
-          </div>
-        </div>
-        <RightSidebar />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '1rem',
+        }}
+      >
+        {gallery.images &&
+          gallery.images.map((item: any, index: number) => {
+            const likeCount = imageLikes[index] || 0
+            
+            return (
+              <div
+                key={index}
+                onClick={() => handleImageClick(index)}
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  paddingBottom: '100%',
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: '0.5rem',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)'
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              >
+                <Image
+                  src={urlFor(item.image).url()}
+                  alt={item.caption || gallery.title}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 768px) 100vw, 200px"
+                />
+                {likeCount > 0 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '0.5rem',
+                      right: '0.5rem',
+                      background: 'rgba(0,0,0,0.7)',
+                      color: '#ffffff',
+                      fontSize: '0.7rem',
+                      padding: '0.2rem 0.5rem',
+                      borderRadius: '9999px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      backdropFilter: 'blur(4px)',
+                    }}
+                  >
+                    ❤️ {likeCount}
+                  </div>
+                )}
+              </div>
+            )
+          })}
       </div>
+
+      {/* Comments */}
+      <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
+        <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
+        <Comments id={gallery._id} title={gallery.title} url={url} />
+      </div>
+
+      {selectedIndex !== null && gallery.images && gallery.images[selectedIndex] && (
+        <ImageModal
+          item={gallery.images[selectedIndex]}
+          galleryTitle={gallery.title}
+          galleryId={gallery._id}
+          imageIndex={selectedIndex}
+          imageId={imageIds[selectedIndex] || ''}
+          initialLikes={imageLikes[selectedIndex] || 0}
+          onLikeUpdate={(newLikes) => handleLikeUpdate(selectedIndex, newLikes)}
+          onClose={handleCloseModal}
+          baseUrl={baseUrl}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          hasNext={selectedIndex < gallery.images.length - 1}
+          hasPrev={selectedIndex > 0}
+        />
+      )}
     </div>
   )
 }

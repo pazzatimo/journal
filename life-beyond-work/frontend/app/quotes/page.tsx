@@ -1,4 +1,4 @@
-import { client, urlFor, getSidebarLinks, getBaseUrl } from '@/lib/sanity'
+import { client, getSidebarLinks, getBaseUrl } from '@/lib/sanity'
 import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
@@ -230,6 +230,7 @@ export default async function QuotesPage() {
                   <ShareButtons url={quoteUrl} title={quoteText} />
                 </div>
 
+                {/* Comments per quote */}
                 <div style={{ marginTop: '1.5rem' }}>
                   <Comments id={quote._id} title="Quote" url={quoteUrl} />
                 </div>
@@ -248,4 +249,3 @@ export default async function QuotesPage() {
     </div>
   )
 }
-export const revalidate = 60;
