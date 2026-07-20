@@ -71,3 +71,4 @@ export default async function StoriesPage() {
     </div>
   )
 }
+export const revalidate = 60;

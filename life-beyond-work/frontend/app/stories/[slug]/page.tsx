@@ -6,6 +6,7 @@ import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
 import { Sidebar, RightSidebar } from '@/components/Sidebar'
+import { MobileSidebar } from '@/components/MobileSidebar'
 import { notFound } from 'next/navigation'
 
 const portableTextComponents = {
@@ -22,33 +23,7 @@ const portableTextComponents = {
   },
 }
 
-async function getStory(slug: string) {
-  const allStories = await client.fetch(`
-    *[_type == "story"] {
-      _id,
-      title,
-      publishedAt,
-      coverImage,
-      storyContent,
-      categories,
-      slug,
-      likes,
-      audio,
-      video
-    }
-  `)
-  return allStories.find((s: any) => s.slug?.current === slug) || null
-}
-
-function getEmbedUrl(url: string): string {
-  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/)
-  if (youtubeMatch) return `https://www.youtube.com/embed/${youtubeMatch[1]}`
-  const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/)
-  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
-  if (url.includes('embed')) return url
-  return url
-}
-
+// Helper to get Sanity file asset URL for audio
 function getSanityFileUrl(assetRef: string): string {
   if (!assetRef) return ''
   const ref = assetRef
@@ -60,14 +35,29 @@ function getSanityFileUrl(assetRef: string): string {
   return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
 }
 
+// Audio Player Component
 function AudioPlayer({ audio }: { audio: any }) {
   if (!audio?.file) return null
+
   let audioUrl = ''
-  if (audio.file.asset?._ref) audioUrl = getSanityFileUrl(audio.file.asset._ref)
+  if (audio.file.asset?._ref) {
+    audioUrl = getSanityFileUrl(audio.file.asset._ref)
+  }
+
   if (!audioUrl) return null
+
   return (
-    <div style={{ backgroundColor: '#f3f4f6', padding: '1.5rem', borderRadius: '0.75rem', marginBottom: '2rem' }}>
-      {audio.title && <p style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.5rem' }}>🎵 {audio.title}</p>}
+    <div style={{
+      backgroundColor: '#f3f4f6',
+      padding: '1.5rem',
+      borderRadius: '0.75rem',
+      marginBottom: '2rem',
+    }}>
+      {audio.title && (
+        <p style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.5rem' }}>
+          🎵 {audio.title}
+        </p>
+      )}
       <audio controls style={{ width: '100%' }}>
         <source src={audioUrl} />
         Your browser does not support the audio element.
@@ -80,6 +70,15 @@ function AudioPlayer({ audio }: { audio: any }) {
       )}
     </div>
   )
+}
+
+function getEmbedUrl(url: string): string {
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/)
+  if (youtubeMatch) return `https://www.youtube.com/embed/${youtubeMatch[1]}`
+  const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/)
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+  if (url.includes('embed')) return url
+  return url
 }
 
 function VideoPlayer({ video }: { video: any }) {
@@ -99,6 +98,24 @@ function VideoPlayer({ video }: { video: any }) {
       </div>
     </div>
   )
+}
+
+async function getStory(slug: string) {
+  const allStories = await client.fetch(`
+    *[_type == "story"] {
+      _id,
+      title,
+      publishedAt,
+      coverImage,
+      storyContent,
+      categories,
+      slug,
+      likes,
+      audio,
+      video
+    }
+  `)
+  return allStories.find((s: any) => s.slug?.current === slug) || null
 }
 
 export default async function StoryPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -122,8 +139,8 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
     <div className="page-with-sidebar">
       <div className="page-with-sidebar-inner">
         <Sidebar sections={sidebarSections} />
-
         <div className="page-main-content">
+          <MobileSidebar sections={sidebarSections} />
           <article style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
             <Link href="/stories" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
               ← Back to Stories
@@ -149,13 +166,17 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
               </div>
             )}
 
+            {/* Audio Player */}
             {story.audio && story.audio.file && <AudioPlayer audio={story.audio} />}
+
+            {/* Video - Top */}
             {showVideoTop && story.video && story.video.url && <VideoPlayer video={story.video} />}
 
             <div style={{ fontSize: '1.1rem', lineHeight: '1.9', color: '#1a1a1a' }}>
               {story.storyContent && <PortableText value={story.storyContent} components={portableTextComponents} />}
             </div>
 
+            {/* Video - Bottom */}
             {showVideoBottom && story.video && story.video.url && <VideoPlayer video={story.video} />}
 
             <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
@@ -171,9 +192,9 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
             </div>
           </article>
         </div>
-
         <RightSidebar />
       </div>
     </div>
   )
 }
+export const revalidate = 60;

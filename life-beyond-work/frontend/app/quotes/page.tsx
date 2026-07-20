@@ -1,8 +1,98 @@
-import { client } from '@/lib/sanity'
+import { client, urlFor, getSidebarLinks, getBaseUrl } from '@/lib/sanity'
 import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
-import { getBaseUrl } from '@/lib/sanity'
+import { MobileSidebar } from '@/components/MobileSidebar'
+
+// Helper function to get embed URL from YouTube/Vimeo
+function getEmbedUrl(url: string): string {
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/)
+  if (youtubeMatch) return `https://www.youtube.com/embed/${youtubeMatch[1]}`
+  const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/)
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+  if (url.includes('embed')) return url
+  return url
+}
+
+// Helper to get Sanity file asset URL for audio
+function getSanityFileUrl(assetRef: string): string {
+  if (!assetRef) return ''
+  const ref = assetRef
+  const id = ref.replace(/^file-/, '').replace(/-\w+$/, '')
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
+  const extMatch = ref.match(/-([a-z0-9]+)$/)
+  const ext = extMatch ? extMatch[1] : 'mp3'
+  return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
+}
+
+// Audio Player Component
+function AudioPlayer({ audio }: { audio: any }) {
+  if (!audio?.file) return null
+
+  let audioUrl = ''
+  if (audio.file.asset?._ref) {
+    audioUrl = getSanityFileUrl(audio.file.asset._ref)
+  }
+
+  if (!audioUrl) return null
+
+  return (
+    <div style={{
+      backgroundColor: '#f3f4f6',
+      padding: '1rem 1.5rem',
+      borderRadius: '0.75rem',
+      marginBottom: '0.75rem',
+    }}>
+      {audio.title && (
+        <p style={{ fontSize: '0.8rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.25rem' }}>
+          🎵 {audio.title}
+        </p>
+      )}
+      <audio controls style={{ width: '100%' }}>
+        <source src={audioUrl} />
+        Your browser does not support the audio element.
+      </audio>
+    </div>
+  )
+}
+
+// Video Player Component
+function VideoPlayer({ video }: { video: any }) {
+  if (!video?.url) return null
+
+  const embedUrl = getEmbedUrl(video.url)
+
+  return (
+    <div style={{
+      marginBottom: '0.75rem',
+      borderRadius: '0.5rem',
+      overflow: 'hidden',
+    }}>
+      {video.title && (
+        <p style={{ fontSize: '0.8rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.25rem' }}>
+          🎬 {video.title}
+        </p>
+      )}
+      <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+        <iframe
+          src={embedUrl}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            border: 'none',
+          }}
+          allowFullScreen
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        />
+      </div>
+    </div>
+  )
+}
 
 async function getQuotes() {
   return await client.fetch(`
@@ -13,13 +103,16 @@ async function getQuotes() {
       context,
       tags,
       publishedAt,
-      likes
+      likes,
+      audio,
+      video
     }
   `)
 }
 
 export default async function QuotesPage() {
   const quotes = await getQuotes()
+  const sidebarSections = await getSidebarLinks()
   const baseUrl = getBaseUrl()
 
   return (
@@ -35,6 +128,8 @@ export default async function QuotesPage() {
         Quotes
       </h1>
 
+      <MobileSidebar sections={sidebarSections} />
+
       {quotes.length === 0 ? (
         <p style={{ color: '#9ca3af' }}>No quotes yet. Create your first quote in Sanity Studio!</p>
       ) : (
@@ -42,6 +137,10 @@ export default async function QuotesPage() {
           {quotes.map((quote: any) => {
             const quoteUrl = `${baseUrl}/quotes#${quote._id}`
             const quoteText = quote.quoteText
+
+            const videoPosition = quote.video?.position || 'bottom'
+            const showVideoTop = videoPosition === 'top'
+            const showVideoBottom = videoPosition === 'bottom'
 
             return (
               <div
@@ -57,6 +156,16 @@ export default async function QuotesPage() {
                   transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
                 }}
               >
+                {/* Video - Top */}
+                {showVideoTop && quote.video && quote.video.url && (
+                  <VideoPlayer video={quote.video} />
+                )}
+
+                {/* Audio */}
+                {quote.audio && quote.audio.file && (
+                  <AudioPlayer audio={quote.audio} />
+                )}
+
                 <blockquote style={{ margin: 0 }}>
                   <p style={{
                     fontSize: '1.2rem',
@@ -103,6 +212,11 @@ export default async function QuotesPage() {
                   )}
                 </blockquote>
 
+                {/* Video - Bottom */}
+                {showVideoBottom && quote.video && quote.video.url && (
+                  <VideoPlayer video={quote.video} />
+                )}
+
                 <div style={{
                   display: 'flex',
                   flexWrap: 'wrap',
@@ -134,3 +248,4 @@ export default async function QuotesPage() {
     </div>
   )
 }
+export const revalidate = 60;

@@ -121,3 +121,4 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     </div>
   )
 }
+export const revalidate = 60;
