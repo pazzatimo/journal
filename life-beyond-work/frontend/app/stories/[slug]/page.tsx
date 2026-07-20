@@ -23,7 +23,6 @@ const portableTextComponents = {
   },
 }
 
-// Helper to get Sanity file asset URL for audio
 function getSanityFileUrl(assetRef: string): string {
   if (!assetRef) return ''
   const ref = assetRef
@@ -35,29 +34,14 @@ function getSanityFileUrl(assetRef: string): string {
   return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
 }
 
-// Audio Player Component
 function AudioPlayer({ audio }: { audio: any }) {
   if (!audio?.file) return null
-
   let audioUrl = ''
-  if (audio.file.asset?._ref) {
-    audioUrl = getSanityFileUrl(audio.file.asset._ref)
-  }
-
+  if (audio.file.asset?._ref) audioUrl = getSanityFileUrl(audio.file.asset._ref)
   if (!audioUrl) return null
-
   return (
-    <div style={{
-      backgroundColor: '#f3f4f6',
-      padding: '1.5rem',
-      borderRadius: '0.75rem',
-      marginBottom: '2rem',
-    }}>
-      {audio.title && (
-        <p style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.5rem' }}>
-          🎵 {audio.title}
-        </p>
-      )}
+    <div style={{ backgroundColor: '#f3f4f6', padding: '1.5rem', borderRadius: '0.75rem', marginBottom: '2rem' }}>
+      {audio.title && <p style={{ fontSize: '0.9rem', fontWeight: '500', color: '#1a1a1a', marginBottom: '0.5rem' }}>🎵 {audio.title}</p>}
       <audio controls style={{ width: '100%' }}>
         <source src={audioUrl} />
         Your browser does not support the audio element.
@@ -166,17 +150,13 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
               </div>
             )}
 
-            {/* Audio Player */}
             {story.audio && story.audio.file && <AudioPlayer audio={story.audio} />}
-
-            {/* Video - Top */}
             {showVideoTop && story.video && story.video.url && <VideoPlayer video={story.video} />}
 
             <div style={{ fontSize: '1.1rem', lineHeight: '1.9', color: '#1a1a1a' }}>
               {story.storyContent && <PortableText value={story.storyContent} components={portableTextComponents} />}
             </div>
 
-            {/* Video - Bottom */}
             {showVideoBottom && story.video && story.video.url && <VideoPlayer video={story.video} />}
 
             <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
@@ -186,6 +166,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
               </div>
             </div>
 
+            {/* Comments */}
             <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
               <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
               <Comments id={story._id} title={story.title} url={url} />
@@ -197,4 +178,3 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
     </div>
   )
 }
-export const revalidate = 60;

@@ -8,6 +8,7 @@ import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
 import { Sidebar, RightSidebar } from '@/components/Sidebar'
+import { MobileSidebar } from '@/components/MobileSidebar'
 import { useEffect, useState } from 'react'
 
 const portableTextComponents = {
@@ -67,8 +68,11 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
       <div className="page-with-sidebar">
         <div className="page-with-sidebar-inner">
           <Sidebar sections={sidebarSections} />
-          <div className="page-main-content" style={{ textAlign: 'center', padding: '4rem 0' }}>
-            <p style={{ color: '#9ca3af' }}>Loading...</p>
+          <div className="page-main-content">
+            <MobileSidebar sections={sidebarSections} />
+            <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+              <p style={{ color: '#9ca3af' }}>Loading...</p>
+            </div>
           </div>
           <RightSidebar />
         </div>
@@ -81,9 +85,12 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
       <div className="page-with-sidebar">
         <div className="page-with-sidebar-inner">
           <Sidebar sections={sidebarSections} />
-          <div className="page-main-content" style={{ padding: '4rem 2rem' }}>
-            <h1>Book not found</h1>
-            <Link href="/books">← Back</Link>
+          <div className="page-main-content">
+            <MobileSidebar sections={sidebarSections} />
+            <div style={{ padding: '4rem 2rem' }}>
+              <h1>Book not found</h1>
+              <Link href="/books">← Back</Link>
+            </div>
           </div>
           <RightSidebar />
         </div>
@@ -99,8 +106,8 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
     <div className="page-with-sidebar">
       <div className="page-with-sidebar-inner">
         <Sidebar sections={sidebarSections} />
-
         <div className="page-main-content">
+          <MobileSidebar sections={sidebarSections} />
           <article style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
             <Link href="/books" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
               ← Back to Books
@@ -160,16 +167,15 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
               </div>
             </div>
 
+            {/* Comments */}
             <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
               <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
               <Comments id={book._id} title={book.title} url={url} />
             </div>
           </article>
         </div>
-
         <RightSidebar />
       </div>
     </div>
   )
 }
-export const revalidate = 60;

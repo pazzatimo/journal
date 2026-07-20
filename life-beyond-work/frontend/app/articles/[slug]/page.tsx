@@ -6,6 +6,7 @@ import { LikeButton } from '@/components/LikeButton'
 import { Comments } from '@/components/Comments'
 import { ShareButtons } from '@/components/ShareButtons'
 import { Sidebar, RightSidebar } from '@/components/Sidebar'
+import { MobileSidebar } from '@/components/MobileSidebar'
 import { notFound } from 'next/navigation'
 
 const portableTextComponents = {
@@ -68,8 +69,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     <div className="page-with-sidebar">
       <div className="page-with-sidebar-inner">
         <Sidebar sections={sidebarSections} />
-
         <div className="page-main-content">
+          <MobileSidebar sections={sidebarSections} />
           <article style={{ maxWidth: '720px', margin: '0 auto', padding: '2rem 0 4rem 0' }}>
             <Link href="/articles" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
               ← Back to Articles
@@ -109,16 +110,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
 
+            {/* Comments */}
             <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid #e5e7eb' }}>
               <h3 style={{ fontSize: '1.3rem', fontWeight: '400', color: '#1a1a1a', marginBottom: '1rem' }}>Comments</h3>
               <Comments id={article._id} title={article.title} url={url} />
             </div>
           </article>
         </div>
-
         <RightSidebar />
       </div>
     </div>
   )
 }
-export const revalidate = 60;
