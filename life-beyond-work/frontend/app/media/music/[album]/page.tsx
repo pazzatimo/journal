@@ -1,8 +1,9 @@
 import { client, getSidebarLinks } from '@/lib/sanity'
 import Link from 'next/link'
 import { MobileSidebar } from '@/components/MobileSidebar'
+import AlbumPlayer from './AlbumPlayer'
 
-// Language tags
+// Language tags (case-insensitive) – used as fallback for tags
 const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German']
 const LANGUAGE_TAGS_LOWERCASE = LANGUAGE_TAGS.map(t => t.toLowerCase())
 
@@ -17,11 +18,23 @@ const SLUG_TO_TAG: Record<string, string> = {
   other: 'Other',
 }
 
+// Helper to build a Sanity file URL from asset reference
+function getSanityFileUrl(assetRef: string): string {
+  if (!assetRef) return ''
+  const ref = assetRef
+  const id = ref.replace(/^file-/, '').replace(/-\w+$/, '')
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
+  const extMatch = ref.match(/-([a-z0-9]+)$/)
+  const ext = extMatch ? extMatch[1] : 'mp3'
+  return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`
+}
+
 async function getAlbumSongs(album: string, search: string) {
   const tag = SLUG_TO_TAG[album]
   if (!tag) return { items: [], total: 0 }
 
-  // 🔍 DEBUG: Fetch ALL music items
+  // Fetch ALL music items with file reference, language, and tags
   const allMusic = await client.fetch(`
     *[_type == "media" && (category == "song" || category == "audio")] {
       _id,
@@ -30,69 +43,56 @@ async function getAlbumSongs(album: string, search: string) {
       category,
       thumbnail,
       publishedAt,
-      tags
+      tags,
+      language,
+      file {
+        asset -> { _ref }
+      }
     }
   `)
 
-  // 🔍 DEBUG LOG: See all tags in the dataset
-  console.log('🔍 Total songs:', allMusic.length)
-  const allTags = new Set()
-  allMusic.forEach((song: any) => {
-    if (song.tags && song.tags.length > 0) {
-      song.tags.forEach((t: string) => allTags.add(t))
+  // Helper: get the effective language for a song (prefer `language`, fallback to `tags`)
+  function getEffectiveLanguage(song: any): string | null {
+    // 1. If language field is set and non-empty, use it
+    if (song.language && song.language.trim() !== '') {
+      return song.language.trim()
     }
-  })
-  console.log('🔍 All unique tags in Sanity:', Array.from(allTags))
-  console.log('🔍 Looking for language tags:', LANGUAGE_TAGS)
-
-  // Helper: check if a song has any language tag (case‑insensitive)
-  function hasLanguageTag(song: any): boolean {
-    if (!song.tags || song.tags.length === 0) return false
-    return song.tags.some((t: string) => {
-      const trimmed = t.toLowerCase().trim()
-      const result = LANGUAGE_TAGS_LOWERCASE.includes(trimmed)
-      if (result) {
-        console.log(`✅ Match: "${t}" → "${trimmed}" matches language tag`)
+    // 2. Fallback: check if any tag matches a language tag
+    if (song.tags && song.tags.length > 0) {
+      for (const t of song.tags) {
+        const trimmed = t.toLowerCase().trim()
+        if (LANGUAGE_TAGS_LOWERCASE.includes(trimmed)) {
+          // Return the matching language tag (capitalized)
+          const idx = LANGUAGE_TAGS_LOWERCASE.indexOf(trimmed)
+          return LANGUAGE_TAGS[idx]
+        }
       }
-      return result
-    })
+    }
+    return null
   }
 
   let filteredSongs = []
 
   if (tag === 'Other') {
-    // "Other": songs with NO tags OR no language tags
+    // "Other": songs with NO language AND NO language tag
     filteredSongs = allMusic.filter((song: any) => {
-      if (!song.tags || song.tags.length === 0) {
-        console.log(`📌 "${song.title}" → No tags, goes to Other`)
-        return true
-      }
-      const hasLang = hasLanguageTag(song)
-      if (!hasLang) {
-        console.log(`📌 "${song.title}" → Tags: ${song.tags.join(', ')} → No language tag, goes to Other`)
-      }
-      return !hasLang
+      const lang = getEffectiveLanguage(song)
+      return lang === null // no language set
     })
   } else {
-    // Language album: songs that have this specific tag (case‑insensitive)
+    // Language album: songs that match this language (from either language or tags)
     const targetTagLower = tag.toLowerCase()
     filteredSongs = allMusic.filter((song: any) => {
-      if (!song.tags || song.tags.length === 0) return false
-      const match = song.tags.some((t: string) => {
-        const trimmed = t.toLowerCase().trim()
-        return trimmed === targetTagLower
-      })
-      if (match) {
-        console.log(`✅ "${song.title}" → Has tag "${tag}"`)
-      }
-      return match
+      const lang = getEffectiveLanguage(song)
+      if (!lang) return false
+      return lang.toLowerCase().trim() === targetTagLower
     })
   }
 
-  // Sort A‑Z by title
+  // Sort A–Z by title
   filteredSongs.sort((a: any, b: any) => a.title.localeCompare(b.title))
 
-  // Apply search filter if provided
+  // Apply search
   if (search) {
     const searchLower = search.toLowerCase()
     filteredSongs = filteredSongs.filter((item: any) =>
@@ -100,8 +100,13 @@ async function getAlbumSongs(album: string, search: string) {
     )
   }
 
-  console.log(`📊 "${tag}" album has ${filteredSongs.length} songs`)
-  return { items: filteredSongs, total: filteredSongs.length }
+  // Add fileUrl to each item
+  const itemsWithUrl = filteredSongs.map((item: any) => ({
+    ...item,
+    fileUrl: item.file?.asset?._ref ? getSanityFileUrl(item.file.asset._ref) : null,
+  }))
+
+  return { items: itemsWithUrl, total: itemsWithUrl.length }
 }
 
 export default async function AlbumPage({
@@ -130,9 +135,16 @@ export default async function AlbumPage({
       <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: '400', color: '#111827', marginBottom: '0.25rem' }}>
         {displayName} Songs
       </h1>
-      <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+      <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1rem' }}>
         {total} {total === 1 ? 'track' : 'tracks'} • A–Z
       </p>
+
+      {/* 🎵 PLAYER */}
+      {items.length > 0 && (
+        <div style={{ marginBottom: '2rem' }}>
+          <AlbumPlayer songs={items} />
+        </div>
+      )}
 
       {/* Search Bar */}
       <form method="get" style={{ marginBottom: '2rem' }}>
@@ -187,7 +199,7 @@ export default async function AlbumPage({
         )}
       </form>
 
-      {/* Three‑column list – no horizontal lines */}
+      {/* Three‑column song list */}
       {items.length === 0 ? (
         <p style={{ color: '#6b7280' }}>No songs found.</p>
       ) : (

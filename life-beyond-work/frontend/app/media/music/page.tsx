@@ -3,48 +3,59 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MobileSidebar } from '@/components/MobileSidebar'
 
-// Language tags (case‑insensitive matching now)
+// Language tags (case-insensitive) – used as fallback for tags
 const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German']
 const LANGUAGE_TAGS_LOWERCASE = LANGUAGE_TAGS.map(t => t.toLowerCase())
 
 async function getMusicAlbums() {
-  // Fetch ALL music items (songs + audio)
+  // Fetch ALL music items (songs + audio) with language and tags
   const items = await client.fetch(`
     *[_type == "media" && (category == "song" || category == "audio")] {
       _id,
       title,
       slug,
       tags,
+      language,
       thumbnail,
       publishedAt
     }
   `)
 
-  // Helper: check if a song has any language tag (case‑insensitive)
-  function hasLanguageTag(song: any): boolean {
-    if (!song.tags || song.tags.length === 0) return false
-    return song.tags.some((t: string) =>
-      LANGUAGE_TAGS_LOWERCASE.includes(t.toLowerCase().trim())
-    )
+  // Helper: get the effective language for a song
+  function getEffectiveLanguage(song: any): string | null {
+    // 1. Prefer the `language` field
+    if (song.language && song.language.trim() !== '') {
+      return song.language.trim()
+    }
+    // 2. Fallback: check if any tag matches a language tag
+    if (song.tags && song.tags.length > 0) {
+      for (const t of song.tags) {
+        const trimmed = t.toLowerCase().trim()
+        if (LANGUAGE_TAGS_LOWERCASE.includes(trimmed)) {
+          const idx = LANGUAGE_TAGS_LOWERCASE.indexOf(trimmed)
+          return LANGUAGE_TAGS[idx]
+        }
+      }
+    }
+    return null
   }
 
-  // Group by language tag (case‑insensitive)
+  // Group by effective language
   const albums: Record<string, any[]> = {}
 
   LANGUAGE_TAGS.forEach(tag => {
     const lowerTag = tag.toLowerCase()
     albums[tag] = items.filter((item: any) => {
-      if (!item.tags || item.tags.length === 0) return false
-      return item.tags.some((t: string) =>
-        t.toLowerCase().trim() === lowerTag
-      )
+      const lang = getEffectiveLanguage(item)
+      if (!lang) return false
+      return lang.toLowerCase().trim() === lowerTag
     })
   })
 
-  // "Other": songs with NO tags OR no language tags
+  // "Other": songs with NO language AND NO language tag
   albums['Other'] = items.filter((item: any) => {
-    if (!item.tags || item.tags.length === 0) return true
-    return !hasLanguageTag(item)
+    const lang = getEffectiveLanguage(item)
+    return lang === null
   })
 
   // Sort each album chronologically (newest first)
@@ -61,7 +72,6 @@ export default async function MusicPage() {
   const albums = await getMusicAlbums()
   const sidebarSections = await getSidebarLinks()
 
-  // Remove empty albums so they don't appear as empty cards
   const filteredAlbums = Object.fromEntries(
     Object.entries(albums).filter(([_, items]) => items.length > 0)
   )
