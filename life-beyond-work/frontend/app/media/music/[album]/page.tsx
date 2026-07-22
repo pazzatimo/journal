@@ -45,24 +45,25 @@ async function getAlbumSongs(album: string, search: string) {
       publishedAt,
       tags,
       language,
-      file {
-        asset -> { _ref }
-      }
+      "fileRef": file.asset._ref
     }
   `)
 
+  // 🔍 DEBUG: Log all songs and their fileRef
+  console.log('🔍 Total songs fetched:', allMusic.length)
+  allMusic.forEach((song: any, i: number) => {
+    console.log(`  ${i+1}. "${song.title}" → fileRef: ${song.fileRef || '❌ MISSING'}`)
+  })
+
   // Helper: get the effective language for a song (prefer `language`, fallback to `tags`)
   function getEffectiveLanguage(song: any): string | null {
-    // 1. If language field is set and non-empty, use it
     if (song.language && song.language.trim() !== '') {
       return song.language.trim()
     }
-    // 2. Fallback: check if any tag matches a language tag
     if (song.tags && song.tags.length > 0) {
       for (const t of song.tags) {
         const trimmed = t.toLowerCase().trim()
         if (LANGUAGE_TAGS_LOWERCASE.includes(trimmed)) {
-          // Return the matching language tag (capitalized)
           const idx = LANGUAGE_TAGS_LOWERCASE.indexOf(trimmed)
           return LANGUAGE_TAGS[idx]
         }
@@ -74,13 +75,11 @@ async function getAlbumSongs(album: string, search: string) {
   let filteredSongs = []
 
   if (tag === 'Other') {
-    // "Other": songs with NO language AND NO language tag
     filteredSongs = allMusic.filter((song: any) => {
       const lang = getEffectiveLanguage(song)
-      return lang === null // no language set
+      return lang === null
     })
   } else {
-    // Language album: songs that match this language (from either language or tags)
     const targetTagLower = tag.toLowerCase()
     filteredSongs = allMusic.filter((song: any) => {
       const lang = getEffectiveLanguage(song)
@@ -88,6 +87,8 @@ async function getAlbumSongs(album: string, search: string) {
       return lang.toLowerCase().trim() === targetTagLower
     })
   }
+
+  console.log(`🔍 Filtered (${tag}):`, filteredSongs.length, 'songs')
 
   // Sort A–Z by title
   filteredSongs.sort((a: any, b: any) => a.title.localeCompare(b.title))
@@ -101,10 +102,17 @@ async function getAlbumSongs(album: string, search: string) {
   }
 
   // Add fileUrl to each item
-  const itemsWithUrl = filteredSongs.map((item: any) => ({
-    ...item,
-    fileUrl: item.file?.asset?._ref ? getSanityFileUrl(item.file.asset._ref) : null,
-  }))
+  const itemsWithUrl = filteredSongs.map((item: any) => {
+    const fileUrl = item.fileRef ? getSanityFileUrl(item.fileRef) : null
+    console.log(`  "${item.title}" → fileUrl: ${fileUrl || '❌ NULL'}`)
+    return {
+      ...item,
+      fileUrl,
+    }
+  })
+
+  const playableCount = itemsWithUrl.filter(item => item.fileUrl).length
+  console.log(`🔍 Playable songs: ${playableCount} / ${itemsWithUrl.length}`)
 
   return { items: itemsWithUrl, total: itemsWithUrl.length }
 }
@@ -124,6 +132,9 @@ export default async function AlbumPage({
   const albumLabel = SLUG_TO_TAG[album] || album
   const displayName = albumLabel === 'Other' ? 'Uncategorized' : albumLabel
 
+  // Only show player if there is at least one song with a fileUrl
+  const playableSongs = items.filter((item: any) => item.fileUrl)
+
   return (
     <div className="page-main-content" style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
       <MobileSidebar sections={sidebarSections} />
@@ -139,11 +150,17 @@ export default async function AlbumPage({
         {total} {total === 1 ? 'track' : 'tracks'} • A–Z
       </p>
 
-      {/* 🎵 PLAYER */}
-      {items.length > 0 && (
+      {/* 🎵 PLAYER – only show if there are playable songs */}
+      {playableSongs.length > 0 ? (
         <div style={{ marginBottom: '2rem' }}>
-          <AlbumPlayer songs={items} />
+          <AlbumPlayer songs={playableSongs} />
         </div>
+      ) : (
+        total > 0 && (
+          <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '8px', color: '#6b7280', textAlign: 'center' }}>
+            No audio files available for this album.
+          </div>
+        )
       )}
 
       {/* Search Bar */}

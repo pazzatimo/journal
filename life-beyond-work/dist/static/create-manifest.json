@@ -1,6 +1,6 @@
 {
-  "createdAt": "2026-07-16T11:38:13.496Z",
-  "studioVersion": "6.5.0",
+  "createdAt": "2026-07-22T17:53:55.106Z",
+  "studioVersion": "6.6.0",
   "version": 3,
   "workspaces": [
     {
@@ -13,7 +13,7 @@
       },
       "name": "default",
       "projectId": "3ojsturu",
-      "schema": "5011aaa2.create-schema.json",
+      "schema": "1d9512b2.create-schema.json",
       "title": "Life Beyond Work",
       "tools": "a1fd46b5.create-tools.json"
     }

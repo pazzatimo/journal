@@ -77,13 +77,34 @@ export default defineType({
       initialValue: () => new Date().toISOString(),
       validation: (rule) => rule.required(),
     }),
+    // ✅ NEW: Language dropdown – easier than free‑text tags
+    defineField({
+      name: 'language',
+      title: 'Language',
+      type: 'string',
+      group: 'content',
+      options: {
+        list: [
+          { title: 'Kiswahili', value: 'Kiswahili' },
+          { title: 'English', value: 'English' },
+          { title: 'Portuguese', value: 'Portuguese' },
+          { title: 'Spanish', value: 'Spanish' },
+          { title: 'French', value: 'French' },
+          { title: 'German', value: 'German' },
+          { title: 'Other', value: 'Other' },
+        ],
+      },
+      description: 'Select the language of this song. If you leave it empty, we will fall back to the "tags" field.',
+    }),
+    // Keep the tags field for backward compatibility
     defineField({
       name: 'tags',
-      title: 'Tags',
+      title: 'Tags (legacy)',
       type: 'array',
       group: 'content',
       of: [{ type: 'string' }],
       options: { layout: 'tags' },
+      description: 'Only used if "Language" is not set.',
     }),
     defineField({
       name: 'likes',

@@ -1621,15 +1621,54 @@
       },
       {
         "options": {
+          "list": [
+            {
+              "title": "Kiswahili",
+              "value": "Kiswahili"
+            },
+            {
+              "title": "English",
+              "value": "English"
+            },
+            {
+              "title": "Portuguese",
+              "value": "Portuguese"
+            },
+            {
+              "title": "Spanish",
+              "value": "Spanish"
+            },
+            {
+              "title": "French",
+              "value": "French"
+            },
+            {
+              "title": "German",
+              "value": "German"
+            },
+            {
+              "title": "Other",
+              "value": "Other"
+            }
+          ]
+        },
+        "description": "Select the language of this song. If you leave it empty, we will fall back to the \"tags\" field.",
+        "name": "language",
+        "type": "string"
+      },
+      {
+        "options": {
           "layout": "tags"
         },
+        "description": "Only used if \"Language\" is not set.",
         "of": [
           {
             "type": "string"
           }
         ],
         "name": "tags",
-        "type": "array"
+        "type": "array",
+        "title": "Tags (legacy)"
       },
       {
         "initialValue": 0,
@@ -1741,6 +1780,119 @@
       }
     ],
     "name": "siteSettings",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "description": "e.g., \"About William Branham\", \"Resources\", \"Ministries\"",
+        "name": "sectionTitle",
+        "type": "string"
+      },
+      {
+        "initialValue": 0,
+        "description": "Lower numbers appear first",
+        "name": "sectionOrder",
+        "type": "number",
+        "title": "Display Order"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "min",
+                "constraint": 1
+              }
+            ]
+          }
+        ],
+        "of": [
+          {
+            "fields": [
+              {
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "name": "label",
+                "type": "string",
+                "title": "Link Label"
+              },
+              {
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "uri",
+                        "constraint": {
+                          "options": {
+                            "scheme": [
+                              "/^http$/",
+                              "/^https$/"
+                            ],
+                            "allowRelative": false,
+                            "relativeOnly": false,
+                            "allowCredentials": false
+                          }
+                        }
+                      },
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "name": "url",
+                "type": "url",
+                "title": "URL"
+              },
+              {
+                "initialValue": true,
+                "name": "external",
+                "type": "boolean",
+                "title": "Open in New Tab"
+              },
+              {
+                "description": "e.g., 🔗, 📖, 🎵",
+                "name": "icon",
+                "type": "string",
+                "title": "Icon (emoji)"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "name": "links",
+        "type": "array"
+      }
+    ],
+    "name": "sidebarLinks",
     "type": "document"
   }
 ]
