@@ -18,6 +18,24 @@ const SLUG_TO_TAG: Record<string, string> = {
   other: 'Other',
 }
 
+// Type for a song from Sanity
+interface SanitySong {
+  _id: string
+  title: string
+  slug: { current: string }
+  category: string
+  thumbnail: any
+  publishedAt: string
+  tags: string[]
+  language: string | null
+  fileRef: string | null
+}
+
+// Type for a song with fileUrl added
+interface SongWithUrl extends SanitySong {
+  fileUrl: string | null
+}
+
 // Helper to build a Sanity file URL from asset reference
 function getSanityFileUrl(assetRef: string): string {
   if (!assetRef) return ''
@@ -35,7 +53,7 @@ async function getAlbumSongs(album: string, search: string) {
   if (!tag) return { items: [], total: 0 }
 
   // Fetch ALL music items with file reference, language, and tags
-  const allMusic = await client.fetch(`
+  const allMusic: SanitySong[] = await client.fetch(`
     *[_type == "media" && (category == "song" || category == "audio")] {
       _id,
       title,
@@ -51,12 +69,12 @@ async function getAlbumSongs(album: string, search: string) {
 
   // 🔍 DEBUG: Log all songs and their fileRef
   console.log('🔍 Total songs fetched:', allMusic.length)
-  allMusic.forEach((song: any, i: number) => {
+  allMusic.forEach((song: SanitySong, i: number) => {
     console.log(`  ${i+1}. "${song.title}" → fileRef: ${song.fileRef || '❌ MISSING'}`)
   })
 
   // Helper: get the effective language for a song (prefer `language`, fallback to `tags`)
-  function getEffectiveLanguage(song: any): string | null {
+  function getEffectiveLanguage(song: SanitySong): string | null {
     if (song.language && song.language.trim() !== '') {
       return song.language.trim()
     }
@@ -72,16 +90,16 @@ async function getAlbumSongs(album: string, search: string) {
     return null
   }
 
-  let filteredSongs = []
+  let filteredSongs: SanitySong[] = []
 
   if (tag === 'Other') {
-    filteredSongs = allMusic.filter((song: any) => {
+    filteredSongs = allMusic.filter((song: SanitySong) => {
       const lang = getEffectiveLanguage(song)
       return lang === null
     })
   } else {
     const targetTagLower = tag.toLowerCase()
-    filteredSongs = allMusic.filter((song: any) => {
+    filteredSongs = allMusic.filter((song: SanitySong) => {
       const lang = getEffectiveLanguage(song)
       if (!lang) return false
       return lang.toLowerCase().trim() === targetTagLower
@@ -91,18 +109,18 @@ async function getAlbumSongs(album: string, search: string) {
   console.log(`🔍 Filtered (${tag}):`, filteredSongs.length, 'songs')
 
   // Sort A–Z by title
-  filteredSongs.sort((a: any, b: any) => a.title.localeCompare(b.title))
+  filteredSongs.sort((a: SanitySong, b: SanitySong) => a.title.localeCompare(b.title))
 
   // Apply search
   if (search) {
     const searchLower = search.toLowerCase()
-    filteredSongs = filteredSongs.filter((item: any) =>
+    filteredSongs = filteredSongs.filter((item: SanitySong) =>
       item.title.toLowerCase().includes(searchLower)
     )
   }
 
   // Add fileUrl to each item
-  const itemsWithUrl = filteredSongs.map((item: any) => {
+  const itemsWithUrl: SongWithUrl[] = filteredSongs.map((item: SanitySong) => {
     const fileUrl = item.fileRef ? getSanityFileUrl(item.fileRef) : null
     console.log(`  "${item.title}" → fileUrl: ${fileUrl || '❌ NULL'}`)
     return {
@@ -111,7 +129,7 @@ async function getAlbumSongs(album: string, search: string) {
     }
   })
 
-  const playableCount = itemsWithUrl.filter(item => item.fileUrl).length
+  const playableCount = itemsWithUrl.filter((item: SongWithUrl) => item.fileUrl).length
   console.log(`🔍 Playable songs: ${playableCount} / ${itemsWithUrl.length}`)
 
   return { items: itemsWithUrl, total: itemsWithUrl.length }
@@ -133,7 +151,7 @@ export default async function AlbumPage({
   const displayName = albumLabel === 'Other' ? 'Uncategorized' : albumLabel
 
   // Only show player if there is at least one song with a fileUrl
-  const playableSongs = items.filter((item: any) => item.fileUrl)
+  const playableSongs = items.filter((item: SongWithUrl) => item.fileUrl)
 
   return (
     <div className="page-main-content" style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
@@ -227,7 +245,7 @@ export default async function AlbumPage({
             gap: '0.15rem 1.5rem',
           }}
         >
-          {items.map((item: any, index: number) => (
+          {items.map((item: SongWithUrl, index: number) => (
             <Link
               key={item._id}
               href={`/media/${item.slug.current}`}
