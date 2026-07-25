@@ -138,125 +138,141 @@ export default async function AlbumPage({
 
   const albumLabel = SLUG_TO_TAG[album] || album
   const displayName = albumLabel === 'Other' ? 'Uncategorized' : albumLabel
-
-  // Only show player if there is at least one song with a fileUrl
+  const isAIAlbum = albumLabel === 'AI'
   const playableSongs = items.filter((item: SongWithUrl) => item.fileUrl)
 
-  // ✅ AI album description
-  const isAIAlbum = albumLabel === 'AI'
-
   return (
-    <div className="page-main-content" style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
+    <div className="page-main-content" style={{ maxWidth: '880px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
       <MobileSidebar sections={sidebarSections} />
 
-      <Link href="/media/music" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
+      <Link
+        href="/media/music"
+        style={{
+          display: 'inline-block',
+          marginBottom: '1.5rem',
+          fontSize: '0.85rem',
+          color: '#6b7280',
+          textDecoration: 'none',
+          borderBottom: '1px solid transparent',
+          transition: 'border-color 0.15s',
+        }}
+        className="back-link"
+      >
         ← Back to Albums
       </Link>
 
-      <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: '400', color: '#111827', marginBottom: '0.25rem' }}>
-        🤖 {displayName} Songs
+      <h1 style={{ fontSize: 'clamp(2rem, 4.5vw, 2.8rem)', fontWeight: '300', color: '#111827', marginBottom: '0.15rem', letterSpacing: '-0.02em' }}>
+        {displayName}
       </h1>
+      <p style={{ color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+        {total} {total === 1 ? 'track' : 'tracks'}
+      </p>
 
-      {/* ✅ AI Album Description */}
-      {isAIAlbum && (
+      {/* AI note – subtle, not a box */}
+      {isAIAlbum && total > 0 && (
         <div style={{
-          backgroundColor: '#f0f7ff',
-          borderLeft: '4px solid #2563eb',
-          padding: '1rem 1.25rem',
-          borderRadius: '6px',
           marginBottom: '1.5rem',
-          color: '#1e293b',
-          fontSize: '0.95rem',
-          lineHeight: '1.6',
+          paddingBottom: '1rem',
+          borderBottom: '1px solid #f3f4f6',
         }}>
-          <p style={{ margin: 0 }}>
-            <strong>🤖 Kwa maelezo:</strong> Hizi nyimbo zimetungwa na binadamu, lakini mchangiko wa sauti na vyombo vya muziki umefanywa kwa msaada wa Akili Mnemba (Artificial Intelligence). Lengo ni kuwasaidia wasikilizaji kuelewa kwamba teknolojia inasaidia sana katika uzalishaji wa muziki wa kisasa.
-          </p>
-          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#475569' }}>
-            <em>English: These songs are composed by humans, but the audio mixing and instrumentation have been assisted by Artificial Intelligence. The aim is to help listeners understand that technology greatly supports modern music production.</em>
+          <p style={{
+            margin: 0,
+            fontSize: '0.85rem',
+            color: '#6b7280',
+            lineHeight: '1.6',
+            fontStyle: 'italic',
+          }}>
+            <span style={{ color: '#4b5563', fontWeight: '400' }}>†</span>{' '}
+            Nyimbo hizi zimetungwa na binadamu, lakini mchangiko wa sauti na vyombo vya muziki umefanywa kwa msaada wa Akili Mnemba (AI).
+            <span style={{ display: 'block', fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+              These songs are composed by humans, with AI‑assisted audio mixing and instrumentation.
+            </span>
           </p>
         </div>
       )}
 
-      <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1rem' }}>
-        {total} {total === 1 ? 'track' : 'tracks'} • A–Z
-      </p>
-
-      {/* 🎵 PLAYER – only show if there are playable songs */}
+      {/* Player */}
       {playableSongs.length > 0 ? (
         <div style={{ marginBottom: '2rem' }}>
           <AlbumPlayer songs={playableSongs} />
         </div>
       ) : (
         total > 0 && (
-          <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '8px', color: '#6b7280', textAlign: 'center' }}>
+          <div style={{
+            marginBottom: '2rem',
+            padding: '1.25rem',
+            backgroundColor: '#fafafa',
+            borderRadius: '8px',
+            color: '#9ca3af',
+            textAlign: 'center',
+            fontSize: '0.9rem',
+          }}>
             No audio files available for this album.
           </div>
         )
       )}
 
-      {/* Search Bar */}
-      <form method="get" style={{ marginBottom: '2rem' }}>
-        <input
-          type="text"
-          name="search"
-          placeholder="Search songs..."
-          defaultValue={search}
-          className="search-input"
-          style={{
-            width: '100%',
-            maxWidth: '400px',
-            padding: '0.6rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #e5e7eb',
-            fontSize: '0.95rem',
-            outline: 'none',
-            transition: 'border-color 0.2s',
-            backgroundColor: '#fafafa',
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            marginLeft: '0.5rem',
-            padding: '0.6rem 1.5rem',
-            borderRadius: '8px',
-            border: 'none',
-            backgroundColor: '#111827',
-            color: '#fff',
-            fontSize: '0.95rem',
-            cursor: 'pointer',
-          }}
-        >
-          Search
-        </button>
-        {search && (
-          <Link
-            href={`/media/music/${album}`}
+      {/* Search Bar – minimal */}
+      <form method="get" style={{ marginBottom: '1.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="text"
+            name="search"
+            placeholder="Search tracks..."
+            defaultValue={search}
+            className="search-input"
             style={{
-              marginLeft: '0.5rem',
-              padding: '0.6rem 1.5rem',
-              borderRadius: '8px',
-              border: '1px solid #e5e7eb',
-              textDecoration: 'none',
-              color: '#374151',
-              fontSize: '0.95rem',
+              flex: 1,
+              maxWidth: '320px',
+              padding: '0.5rem 0.75rem',
+              border: 'none',
+              borderBottom: '1px solid #e5e7eb',
+              fontSize: '0.9rem',
+              outline: 'none',
+              backgroundColor: 'transparent',
+              transition: 'border-color 0.2s',
             }}
+          />
+          <button
+            type="submit"
+            style={{
+              padding: '0.4rem 1rem',
+              borderRadius: '20px',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: '#6b7280',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              transition: 'color 0.15s',
+            }}
+            className="search-btn"
           >
-            Clear
-          </Link>
-        )}
+            Search
+          </button>
+          {search && (
+            <Link
+              href={`/media/music/${album}`}
+              style={{
+                fontSize: '0.8rem',
+                color: '#9ca3af',
+                textDecoration: 'none',
+              }}
+            >
+              Clear
+            </Link>
+          )}
+        </div>
       </form>
 
-      {/* Three‑column song list */}
+      {/* Song list – natural, minimal, three columns */}
       {items.length === 0 ? (
-        <p style={{ color: '#6b7280' }}>No songs found.</p>
+        <p style={{ color: '#9ca3af' }}>No songs found.</p>
       ) : (
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr 1fr',
-            gap: '0.15rem 1.5rem',
+            gap: '0.25rem 2rem',
           }}
         >
           {items.map((item: SongWithUrl, index: number) => (
@@ -266,19 +282,20 @@ export default async function AlbumPage({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                padding: '0.4rem 0.25rem',
+                padding: '0.3rem 0',
                 textDecoration: 'none',
                 color: '#111827',
                 borderRadius: '4px',
-                transition: 'background-color 0.15s ease',
-                gap: '0.4rem',
+                transition: 'background-color 0.1s ease',
+                gap: '0.5rem',
+                borderBottom: '1px solid #f9fafb',
               }}
               className="song-link"
             >
               <span
                 style={{
                   fontSize: '0.7rem',
-                  color: '#9ca3af',
+                  color: '#d1d5db',
                   fontWeight: '300',
                   minWidth: '1.6rem',
                 }}
@@ -292,6 +309,7 @@ export default async function AlbumPage({
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
+                  color: '#1f2937',
                 }}
               >
                 {item.title}
@@ -302,9 +320,16 @@ export default async function AlbumPage({
       )}
 
       <style>{`
+        .back-link:hover {
+          border-bottom-color: #d1d5db;
+        }
+
         .search-input:focus {
-          border-color: #2563eb !important;
-          background-color: #ffffff !important;
+          border-bottom-color: #9ca3af;
+        }
+
+        .search-btn:hover {
+          color: #111827;
         }
 
         .song-link:hover {
