@@ -4,7 +4,7 @@ import { MobileSidebar } from '@/components/MobileSidebar'
 import AlbumPlayer from './AlbumPlayer'
 
 // Language tags (case-insensitive) – used as fallback for tags
-const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German','AI']
+const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German', 'AI']
 const LANGUAGE_TAGS_LOWERCASE = LANGUAGE_TAGS.map(t => t.toLowerCase())
 
 // Map slug to display name
@@ -15,7 +15,7 @@ const SLUG_TO_TAG: Record<string, string> = {
   spanish: 'Spanish',
   french: 'French',
   german: 'German',
-  ai: 'AI', 
+  ai: 'AI',
   other: 'Other',
 }
 
@@ -68,12 +68,6 @@ async function getAlbumSongs(album: string, search: string) {
     }
   `)
 
-  // 🔍 DEBUG: Log all songs and their fileRef
-  console.log('🔍 Total songs fetched:', allMusic.length)
-  allMusic.forEach((song: SanitySong, i: number) => {
-    console.log(`  ${i+1}. "${song.title}" → fileRef: ${song.fileRef || '❌ MISSING'}`)
-  })
-
   // Helper: get the effective language for a song (prefer `language`, fallback to `tags`)
   function getEffectiveLanguage(song: SanitySong): string | null {
     if (song.language && song.language.trim() !== '') {
@@ -107,8 +101,6 @@ async function getAlbumSongs(album: string, search: string) {
     })
   }
 
-  console.log(`🔍 Filtered (${tag}):`, filteredSongs.length, 'songs')
-
   // Sort A–Z by title
   filteredSongs.sort((a: SanitySong, b: SanitySong) => a.title.localeCompare(b.title))
 
@@ -123,15 +115,11 @@ async function getAlbumSongs(album: string, search: string) {
   // Add fileUrl to each item
   const itemsWithUrl: SongWithUrl[] = filteredSongs.map((item: SanitySong) => {
     const fileUrl = item.fileRef ? getSanityFileUrl(item.fileRef) : null
-    console.log(`  "${item.title}" → fileUrl: ${fileUrl || '❌ NULL'}`)
     return {
       ...item,
       fileUrl,
     }
   })
-
-  const playableCount = itemsWithUrl.filter((item: SongWithUrl) => item.fileUrl).length
-  console.log(`🔍 Playable songs: ${playableCount} / ${itemsWithUrl.length}`)
 
   return { items: itemsWithUrl, total: itemsWithUrl.length }
 }
@@ -154,6 +142,9 @@ export default async function AlbumPage({
   // Only show player if there is at least one song with a fileUrl
   const playableSongs = items.filter((item: SongWithUrl) => item.fileUrl)
 
+  // ✅ AI album description
+  const isAIAlbum = albumLabel === 'AI'
+
   return (
     <div className="page-main-content" style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
       <MobileSidebar sections={sidebarSections} />
@@ -163,8 +154,30 @@ export default async function AlbumPage({
       </Link>
 
       <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: '400', color: '#111827', marginBottom: '0.25rem' }}>
-        {displayName} Songs
+        🤖 {displayName} Songs
       </h1>
+
+      {/* ✅ AI Album Description */}
+      {isAIAlbum && (
+        <div style={{
+          backgroundColor: '#f0f7ff',
+          borderLeft: '4px solid #2563eb',
+          padding: '1rem 1.25rem',
+          borderRadius: '6px',
+          marginBottom: '1.5rem',
+          color: '#1e293b',
+          fontSize: '0.95rem',
+          lineHeight: '1.6',
+        }}>
+          <p style={{ margin: 0 }}>
+            <strong>🤖 Kwa maelezo:</strong> Hizi nyimbo zimetungwa na binadamu, lakini mchangiko wa sauti na vyombo vya muziki umefanywa kwa msaada wa Akili Mnemba (Artificial Intelligence). Lengo ni kuwasaidia wasikilizaji kuelewa kwamba teknolojia inasaidia sana katika uzalishaji wa muziki wa kisasa.
+          </p>
+          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#475569' }}>
+            <em>English: These songs are composed by humans, but the audio mixing and instrumentation have been assisted by Artificial Intelligence. The aim is to help listeners understand that technology greatly supports modern music production.</em>
+          </p>
+        </div>
+      )}
+
       <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '1rem' }}>
         {total} {total === 1 ? 'track' : 'tracks'} • A–Z
       </p>
