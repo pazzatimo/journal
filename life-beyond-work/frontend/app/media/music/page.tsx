@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MobileSidebar } from '@/components/MobileSidebar'
 
-// Language tags (case-insensitive) – used as fallback for tags
+// Language tags – used for grouping
 const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German', 'AI']
 const LANGUAGE_TAGS_LOWERCASE = LANGUAGE_TAGS.map(t => t.toLowerCase())
 
@@ -23,11 +23,9 @@ async function getMusicAlbums() {
 
   // Helper: get the effective language for a song
   function getEffectiveLanguage(song: any): string | null {
-    // 1. Prefer the `language` field
     if (song.language && song.language.trim() !== '') {
       return song.language.trim()
     }
-    // 2. Fallback: check if any tag matches a language tag
     if (song.tags && song.tags.length > 0) {
       for (const t of song.tags) {
         const trimmed = t.toLowerCase().trim()
@@ -68,10 +66,20 @@ async function getMusicAlbums() {
   return albums
 }
 
+// Minimal SVG music note – used as a subtle icon
+const MusicNote = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18V5l12-2v13" />
+    <circle cx="6" cy="18" r="3" />
+    <circle cx="18" cy="16" r="3" />
+  </svg>
+)
+
 export default async function MusicPage() {
   const albums = await getMusicAlbums()
   const sidebarSections = await getSidebarLinks()
 
+  // Remove empty albums
   const filteredAlbums = Object.fromEntries(
     Object.entries(albums).filter(([_, items]) => items.length > 0)
   )
@@ -80,53 +88,110 @@ export default async function MusicPage() {
     return items.find(item => item.thumbnail)?.thumbnail || null
   }
 
+  // Helper: get a subtle label for each album
+  const getAlbumLabel = (name: string) => {
+    if (name === 'Other') return 'Uncategorized'
+    if (name === 'AI') return 'AI‑Assisted'
+    return name
+  }
+
   return (
-    <div className="page-main-content" style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
+    <div className="page-main-content" style={{ maxWidth: '880px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
       <MobileSidebar sections={sidebarSections} />
 
-      <Link href="/media" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.875rem', color: '#2563eb', textDecoration: 'none' }}>
+      <Link href="/media" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid transparent', transition: 'border-color 0.15s' }} className="back-link">
         ← Back to Media Library
       </Link>
 
-      <h1 style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: '400', color: '#111827', marginBottom: '0.5rem' }}>
-        🎵 Music
-      </h1>
-      <p style={{ color: '#6b7280', fontSize: '1rem', marginBottom: '2.5rem', borderBottom: '1px solid #f3f4f6', paddingBottom: '1rem' }}>
-        Browse by language / album collection.
-      </p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.5rem' }}>
-        {Object.entries(filteredAlbums).map(([albumName, items]) => {
-          const cover = getCover(items)
-          const slug = albumName.toLowerCase()
-
-          return (
-            <Link key={albumName} href={`/media/music/${slug}`} style={{ textDecoration: 'none' }}>
-              <div className="album-card" style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', transition: 'all 0.2s ease' }}>
-                <div style={{ position: 'relative', aspectRatio: '1/1', backgroundColor: '#f3f4f6' }}>
-                  {cover ? (
-                    <Image src={urlFor(cover).url()} alt={albumName} fill style={{ objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '3rem' }}>🎵</div>
-                  )}
-                </div>
-                <div style={{ padding: '0.75rem 1rem' }}>
-                  <div style={{ fontWeight: '500', color: '#111827', fontSize: '0.95rem' }}>
-                    {albumName === 'Other' ? 'Uncategorized' : albumName} Songs
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{items.length} tracks</div>
-                </div>
-              </div>
-            </Link>
-          )
-        })}
+      {/* Music page header with the Branham quote */}
+      <div style={{ marginBottom: '2.5rem' }}>
+        <h1 style={{ fontSize: 'clamp(2rem, 4.5vw, 2.8rem)', fontWeight: '300', color: '#111827', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+          Music
+        </h1>
+        <p style={{
+          fontSize: '0.9rem',
+          color: '#6b7280',
+          fontStyle: 'italic',
+          lineHeight: '1.6',
+          maxWidth: '600px',
+          marginTop: '0.25rem',
+          borderLeft: '2px solid #e5e7eb',
+          paddingLeft: '1rem',
+        }}>
+          “There’s nothing like music. You know, God heals by music. Did you know that? Uh-huh. God heals by music.”
+          <span style={{ display: 'block', fontSize: '0.8rem', color: '#9ca3af', fontStyle: 'normal', marginTop: '0.15rem' }}>— Rev. William Marrion Branham</span>
+        </p>
+        <p style={{ fontSize: '0.85rem', color: '#9ca3af', marginTop: '0.5rem', borderBottom: '1px solid #f3f4f6', paddingBottom: '0.75rem' }}>
+          Browse by language or collection.
+        </p>
       </div>
 
+      {/* Album grid – natural, minimal */}
+      {Object.keys(filteredAlbums).length === 0 ? (
+        <p style={{ color: '#9ca3af' }}>No albums found.</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '1.5rem' }}>
+          {Object.entries(filteredAlbums).map(([albumName, items]) => {
+            const cover = getCover(items)
+            const slug = albumName.toLowerCase()
+            const label = getAlbumLabel(albumName)
+
+            return (
+              <Link key={albumName} href={`/media/music/${slug}`} style={{ textDecoration: 'none' }}>
+                <div className="album-card">
+                  <div style={{
+                    position: 'relative',
+                    aspectRatio: '1/1',
+                    backgroundColor: '#fafafa',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    marginBottom: '0.5rem',
+                  }}>
+                    {cover ? (
+                      <Image
+                        src={urlFor(cover).url()}
+                        alt={label}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '100%',
+                        color: '#d1d5db',
+                      }}>
+                        <MusicNote />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: '400', color: '#111827', letterSpacing: '-0.01em' }}>
+                    {label}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.1rem' }}>
+                    {items.length} {items.length === 1 ? 'track' : 'tracks'}
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+
       <style>{`
+        .back-link:hover {
+          border-bottom-color: #d1d5db;
+        }
+
+        .album-card {
+          transition: opacity 0.15s ease;
+        }
         .album-card:hover {
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-          transform: translateY(-4px);
-          border-color: #d1d5db;
+          opacity: 0.7;
+        }
+        .album-card:hover [style*="background-color: #fafafa"] {
+          background-color: #f3f4f6;
         }
       `}</style>
     </div>

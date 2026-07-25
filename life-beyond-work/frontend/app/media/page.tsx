@@ -62,8 +62,8 @@ export default async function MediaPage() {
       count: folderData.Music.count,
       items: folderData.Music.items,
       icon: <MusicIcon />,
-      description: 'There’s nothing like music. You know, God heals by music. Did you know that? Uh-huh. God heals by music.',
-      author: 'Rev. William Marrion Branham',
+      description: 'Browse our collection of songs and audio recordings.',
+      author: '',
     },
     {
       name: 'Videos',
@@ -109,27 +109,15 @@ export default async function MediaPage() {
               <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.15rem' }}>
                 {folder.count} {folder.count === 1 ? 'item' : 'items'}
               </div>
-              {/* Music folder gets the quote */}
-              {folder.slug === 'music' && folder.description && (
+              {/* Simple description – no quote */}
+              {folder.description && (
                 <div style={{
                   marginTop: '0.75rem',
-                  fontSize: '0.75rem',
-                  color: '#4b5563',
-                  fontStyle: 'italic',
-                  lineHeight: '1.5',
-                  borderTop: '1px solid #f3f4f6',
-                  paddingTop: '0.75rem',
-                }}>
-                  <span>“{folder.description}”</span>
-                  {folder.author && <span style={{ display: 'block', fontSize: '0.7rem', color: '#9ca3af', marginTop: '0.25rem' }}>— {folder.author}</span>}
-                </div>
-              )}
-              {/* For other folders, show a simple description */}
-              {folder.slug !== 'music' && folder.description && (
-                <div style={{
-                  marginTop: '0.5rem',
                   fontSize: '0.8rem',
                   color: '#6b7280',
+                  lineHeight: '1.4',
+                  borderTop: '1px solid #f3f4f6',
+                  paddingTop: '0.75rem',
                 }}>
                   {folder.description}
                 </div>
