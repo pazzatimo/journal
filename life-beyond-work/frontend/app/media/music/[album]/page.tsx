@@ -4,7 +4,7 @@ import { MobileSidebar } from '@/components/MobileSidebar'
 import AlbumPlayer from './AlbumPlayer'
 
 // Language tags (case-insensitive) – used as fallback for tags
-const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German']
+const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German','AI']
 const LANGUAGE_TAGS_LOWERCASE = LANGUAGE_TAGS.map(t => t.toLowerCase())
 
 // Map slug to display name
@@ -15,6 +15,7 @@ const SLUG_TO_TAG: Record<string, string> = {
   spanish: 'Spanish',
   french: 'French',
   german: 'German',
+  ai: 'AI', 
   other: 'Other',
 }
 

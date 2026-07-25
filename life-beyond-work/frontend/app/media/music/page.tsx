@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { MobileSidebar } from '@/components/MobileSidebar'
 
 // Language tags (case-insensitive) – used as fallback for tags
-const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German']
+const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French', 'German', 'AI']
 const LANGUAGE_TAGS_LOWERCASE = LANGUAGE_TAGS.map(t => t.toLowerCase())
 
 async function getMusicAlbums() {
