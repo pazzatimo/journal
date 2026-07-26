@@ -1,5 +1,4 @@
-import { client, urlFor, getSidebarLinks } from '@/lib/sanity'
-import Image from 'next/image'
+import { client, getSidebarLinks } from '@/lib/sanity'
 import Link from 'next/link'
 import { MobileSidebar } from '@/components/MobileSidebar'
 
@@ -60,32 +59,26 @@ async function getMusicAlbums() {
   return albums
 }
 
-// Subtle music note icon (used when no cover)
-const MusicNote = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 18V5l12-2v13" />
-    <circle cx="6" cy="18" r="3" />
-    <circle cx="18" cy="16" r="3" />
-  </svg>
-)
+// Helper: get a clean label for each album
+const getAlbumLabel = (name: string) => {
+  if (name === 'Other') return 'Uncategorized'
+  if (name === 'AI') return 'AI‑Assisted'
+  return name
+}
 
 export default async function MusicPage() {
   const albums = await getMusicAlbums()
   const sidebarSections = await getSidebarLinks()
 
+  // Remove empty albums
   const filteredAlbums = Object.fromEntries(
     Object.entries(albums).filter(([_, items]) => items.length > 0)
   )
 
-  const getCover = (items: any[]) => {
-    return items.find(item => item.thumbnail)?.thumbnail || null
-  }
-
-  const getAlbumLabel = (name: string) => {
-    if (name === 'Other') return 'Uncategorized'
-    if (name === 'AI') return 'AI‑Assisted'
-    return name
-  }
+  // Sort albums alphabetically
+  const sortedAlbums = Object.entries(filteredAlbums).sort(([a], [b]) => 
+    a.localeCompare(b)
+  )
 
   return (
     <div className="page-main-content" style={{ maxWidth: '880px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
@@ -117,7 +110,7 @@ export default async function MusicPage() {
           color: '#6b7280',
           fontStyle: 'italic',
           lineHeight: '1.6',
-          maxWidth: '600px',
+          maxWidth: '560px',
           borderLeft: '2px solid #e5e7eb',
           paddingLeft: '1rem',
           marginTop: '0.25rem',
@@ -130,68 +123,47 @@ export default async function MusicPage() {
         </p>
       </div>
 
-      {/* Album grid – compact, clean cards */}
-      {Object.keys(filteredAlbums).length === 0 ? (
+      {/* 
+        ✨ Just a grid of bold words – no cards, no images, no borders 
+      */}
+      {sortedAlbums.length === 0 ? (
         <p style={{ color: '#9ca3af' }}>No albums found.</p>
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-          gap: '1.25rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+          gap: '0.75rem 1.5rem',
         }}>
-          {Object.entries(filteredAlbums).map(([albumName, items]) => {
-            const cover = getCover(items)
+          {sortedAlbums.map(([albumName, items]) => {
             const slug = albumName.toLowerCase()
             const label = getAlbumLabel(albumName)
 
             return (
-              <Link key={albumName} href={`/media/music/${slug}`} style={{ textDecoration: 'none' }}>
-                <div className="album-card">
-                  <div style={{
-                    position: 'relative',
-                    aspectRatio: '1/1',
-                    backgroundColor: '#fafafa',
-                    borderRadius: '6px',
-                    overflow: 'hidden',
-                    marginBottom: '0.4rem',
-                    border: '1px solid #f3f4f6',
-                  }}>
-                    {cover ? (
-                      <Image
-                        src={urlFor(cover).url()}
-                        alt={label}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '100%',
-                        color: '#d1d5db',
-                      }}>
-                        <MusicNote />
-                      </div>
-                    )}
-                  </div>
-                  <div style={{
-                    fontSize: '0.85rem',
-                    fontWeight: '400',
-                    color: '#111827',
-                    letterSpacing: '-0.01em',
-                    textAlign: 'center',
-                  }}>
-                    {label}
-                  </div>
-                  <div style={{
-                    fontSize: '0.7rem',
-                    color: '#9ca3af',
-                    textAlign: 'center',
-                    marginTop: '0.05rem',
-                  }}>
-                    {items.length} {items.length === 1 ? 'track' : 'tracks'}
-                  </div>
+              <Link
+                key={albumName}
+                href={`/media/music/${slug}`}
+                style={{
+                  textDecoration: 'none',
+                  color: '#111827',
+                  padding: '0.2rem 0',
+                }}
+                className="album-link"
+              >
+                <div style={{
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  letterSpacing: '-0.01em',
+                  lineHeight: '1.3',
+                }}>
+                  {label}
+                </div>
+                <div style={{
+                  fontSize: '0.7rem',
+                  color: '#9ca3af',
+                  fontWeight: '300',
+                  marginTop: '0.05rem',
+                }}>
+                  {items.length} {items.length === 1 ? 'track' : 'tracks'}
                 </div>
               </Link>
             )
@@ -204,14 +176,8 @@ export default async function MusicPage() {
           border-bottom-color: #d1d5db;
         }
 
-        .album-card {
-          transition: opacity 0.15s ease;
-        }
-        .album-card:hover {
-          opacity: 0.7;
-        }
-        .album-card:hover [style*="background-color: #fafafa"] {
-          background-color: #f3f4f6;
+        .album-link:hover div:first-child {
+          color: #2563eb;
         }
       `}</style>
     </div>
