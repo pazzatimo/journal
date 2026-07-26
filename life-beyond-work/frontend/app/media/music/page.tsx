@@ -8,7 +8,6 @@ const LANGUAGE_TAGS = ['Kiswahili', 'English', 'Portuguese', 'Spanish', 'French'
 const LANGUAGE_TAGS_LOWERCASE = LANGUAGE_TAGS.map(t => t.toLowerCase())
 
 async function getMusicAlbums() {
-  // Fetch ALL music items (songs + audio) with language and tags
   const items = await client.fetch(`
     *[_type == "media" && (category == "song" || category == "audio")] {
       _id,
@@ -21,7 +20,6 @@ async function getMusicAlbums() {
     }
   `)
 
-  // Helper: get the effective language for a song
   function getEffectiveLanguage(song: any): string | null {
     if (song.language && song.language.trim() !== '') {
       return song.language.trim()
@@ -38,9 +36,7 @@ async function getMusicAlbums() {
     return null
   }
 
-  // Group by effective language
   const albums: Record<string, any[]> = {}
-
   LANGUAGE_TAGS.forEach(tag => {
     const lowerTag = tag.toLowerCase()
     albums[tag] = items.filter((item: any) => {
@@ -50,13 +46,11 @@ async function getMusicAlbums() {
     })
   })
 
-  // "Other": songs with NO language AND NO language tag
   albums['Other'] = items.filter((item: any) => {
     const lang = getEffectiveLanguage(item)
     return lang === null
   })
 
-  // Sort each album chronologically (newest first)
   Object.keys(albums).forEach(key => {
     albums[key].sort((a, b) =>
       new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
@@ -66,9 +60,9 @@ async function getMusicAlbums() {
   return albums
 }
 
-// Minimal SVG music note – used as a subtle icon
+// Subtle music note icon (used when no cover)
 const MusicNote = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18V5l12-2v13" />
     <circle cx="6" cy="18" r="3" />
     <circle cx="18" cy="16" r="3" />
@@ -79,7 +73,6 @@ export default async function MusicPage() {
   const albums = await getMusicAlbums()
   const sidebarSections = await getSidebarLinks()
 
-  // Remove empty albums
   const filteredAlbums = Object.fromEntries(
     Object.entries(albums).filter(([_, items]) => items.length > 0)
   )
@@ -88,7 +81,6 @@ export default async function MusicPage() {
     return items.find(item => item.thumbnail)?.thumbnail || null
   }
 
-  // Helper: get a subtle label for each album
   const getAlbumLabel = (name: string) => {
     if (name === 'Other') return 'Uncategorized'
     if (name === 'AI') return 'AI‑Assisted'
@@ -99,13 +91,25 @@ export default async function MusicPage() {
     <div className="page-main-content" style={{ maxWidth: '880px', margin: '0 auto', padding: '2rem 1.5rem 4rem 1.5rem' }}>
       <MobileSidebar sections={sidebarSections} />
 
-      <Link href="/media" style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none', borderBottom: '1px solid transparent', transition: 'border-color 0.15s' }} className="back-link">
+      <Link
+        href="/media"
+        style={{
+          display: 'inline-block',
+          marginBottom: '1.5rem',
+          fontSize: '0.85rem',
+          color: '#6b7280',
+          textDecoration: 'none',
+          borderBottom: '1px solid transparent',
+          transition: 'border-color 0.15s',
+        }}
+        className="back-link"
+      >
         ← Back to Media Library
       </Link>
 
-      {/* Music page header with the Branham quote */}
-      <div style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: 'clamp(2rem, 4.5vw, 2.8rem)', fontWeight: '300', color: '#111827', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+      {/* Header with quote */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: '300', color: '#111827', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>
           Music
         </h1>
         <p style={{
@@ -114,9 +118,9 @@ export default async function MusicPage() {
           fontStyle: 'italic',
           lineHeight: '1.6',
           maxWidth: '600px',
-          marginTop: '0.25rem',
           borderLeft: '2px solid #e5e7eb',
           paddingLeft: '1rem',
+          marginTop: '0.25rem',
         }}>
           “There’s nothing like music. You know, God heals by music. Did you know that? Uh-huh. God heals by music.”
           <span style={{ display: 'block', fontSize: '0.8rem', color: '#9ca3af', fontStyle: 'normal', marginTop: '0.15rem' }}>— Rev. William Marrion Branham</span>
@@ -126,11 +130,15 @@ export default async function MusicPage() {
         </p>
       </div>
 
-      {/* Album grid – natural, minimal */}
+      {/* Album grid – compact, clean cards */}
       {Object.keys(filteredAlbums).length === 0 ? (
         <p style={{ color: '#9ca3af' }}>No albums found.</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '1.5rem' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+          gap: '1.25rem',
+        }}>
           {Object.entries(filteredAlbums).map(([albumName, items]) => {
             const cover = getCover(items)
             const slug = albumName.toLowerCase()
@@ -143,9 +151,10 @@ export default async function MusicPage() {
                     position: 'relative',
                     aspectRatio: '1/1',
                     backgroundColor: '#fafafa',
-                    borderRadius: '8px',
+                    borderRadius: '6px',
                     overflow: 'hidden',
-                    marginBottom: '0.5rem',
+                    marginBottom: '0.4rem',
+                    border: '1px solid #f3f4f6',
                   }}>
                     {cover ? (
                       <Image
@@ -166,10 +175,21 @@ export default async function MusicPage() {
                       </div>
                     )}
                   </div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: '400', color: '#111827', letterSpacing: '-0.01em' }}>
+                  <div style={{
+                    fontSize: '0.85rem',
+                    fontWeight: '400',
+                    color: '#111827',
+                    letterSpacing: '-0.01em',
+                    textAlign: 'center',
+                  }}>
                     {label}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.1rem' }}>
+                  <div style={{
+                    fontSize: '0.7rem',
+                    color: '#9ca3af',
+                    textAlign: 'center',
+                    marginTop: '0.05rem',
+                  }}>
                     {items.length} {items.length === 1 ? 'track' : 'tracks'}
                   </div>
                 </div>
