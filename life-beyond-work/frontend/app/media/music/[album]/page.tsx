@@ -183,9 +183,9 @@ export default async function AlbumPage({
             fontStyle: 'italic',
           }}>
             <span style={{ color: '#4b5563', fontWeight: '400' }}>†</span>{' '}
-            Nyimbo hizi zimetungwa na binadamu, lakini mchangiko wa sauti na vyombo vya muziki umefanywa kwa msaada wa Akili Mnemba (AI).
+            Nyimbo hizi zimetungwa na binadamu (kutoka wenye Biblia Takatifu na Nukuu za Ndg William Marion Braniham), lakini mchanganyiko wa sauti na vyombo vya muziki umefanywa kwa msaada wa Akili Mnemba (AI).
             <span style={{ display: 'block', fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.25rem' }}>
-              These songs are composed by humans, with AI‑assisted audio mixing and instrumentation.
+              These songs are composed by humans,(From the holly Bible and Bro William Branham Quotes ) with AI‑assisted audio mixing and instrumentation.
             </span>
           </p>
         </div>
